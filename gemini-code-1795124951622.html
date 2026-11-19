@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barock-Quiz (1600–1750) — Emil S., Jonas, Marcel &amp; Max</title>
+  <style>
+    :root {
+      --bg: #14100d;
+      --panel: #211a14;
+      --panel-2: #2b221a;
+      --gold: #d4af37;
+      --text: #f5efe6;
+      --muted: #c7b8a1;
+      --accent: #8b2635;
+      --border: rgba(212, 175, 55, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background: radial-gradient(circle at top, #2a1f16 0%, var(--bg) 70%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px 16px 64px;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    header.hero {
+      background: linear-gradient(145deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 24px;
+      text-align: center;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.7rem, 3.5vw, 2.4rem);
+      color: var(--gold);
+    }
+
+    .subtitle {
+      margin: 0 0 20px;
+      color: var(--muted);
+    }
+
+    .actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 1rem;
+      padding: 11px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--gold);
+      color: #18120c;
+      font-weight: bold;
+    }
+
+    .btn-secondary {
+      background: var(--panel-2);
+      color: var(--text);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: #fff;
+      font-weight: bold;
+    }
+
+    .card {
+      margin-top: 22px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+    }
+
+    .hidden { display: none !important; }
+
+    .options {
+      display: grid;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .option-btn {
+      text-align: left;
+      background: var(--panel-2);
+      color: var(--text);
+      width: 100%;
+    }
+
+    .option-btn.correct {
+      background: rgba(46, 125, 50, 0.35);
+      border-color: #66bb6a;
+    }
+
+    .option-btn.wrong {
+      background: rgba(139, 38, 53, 0.4);
+      border-color: #ef5350;
+    }
+
+    .host-box {
+      margin-top: 24px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+
+    .host-title {
+      margin: 0 0 12px;
+      color: var(--gold);
+      font-size: 1.15rem;
+    }
+
+    .lobby-code {
+      font-size: 2rem;
+      font-weight: bold;
+      letter-spacing: 6px;
+      color: var(--gold);
+      background: var(--panel-2);
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      margin: 8px 0 14px;
+    }
+
+    .players-list {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .players-list li {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.92rem;
+    }
+
+    input[type="text"] {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 1rem;
+      min-width: 180px;
+    }
+
+    .status-msg {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <h1>Barock-Quiz (1600–1750)</h1>
+      <p class="subtitle">Vortrag &amp; Klassenquiz von Emil S., Jonas, Marcel &amp; Max</p>
+      <div class="actions-row">
+        <button id="soloStartBtn" class="btn-primary" type="button">Alleine üben starten</button>
+        <button id="joinOpenBtn" class="btn-secondary" type="button">Als Klasse / Teilnehmende beitreten</button>
+      </div>
+    </header>
+
+    <section id="soloPanel" class="card hidden">
+      <div id="soloContent"></div>
+    </section>
+
+    <section id="joinPanel" class="card hidden">
+      <h2>Raum beitreten</h2>
+      <div class="actions-row" style="justify-content: flex-start;">
+        <input id="joinCodeInput" type="text" placeholder="Raum-Code (z. B. BAROCK)" maxlength="12" />
+        <input id="joinNameInput" type="text" placeholder="Dein Name" maxlength="24" />
+        <button id="joinConfirmBtn" class="btn-primary" type="button">Beitreten</button>
+      </div>
+      <p id="joinStatus" class="status-msg"></p>
+    </section>
+
+    <section id="hostingSection" class="host-box">
+      <h2 class="host-title">Hosting</h2>
+      <button id="openHostingBtn" class="btn-accent" type="button">Hosting starten</button>
+
+      <div id="hostingLobby" class="card hidden" style="margin-top: 16px;">
+        <h3>Hosting aktiv</h3>
+        <p>Raum-Code für die Klasse:</p>
+        <div id="roomCodeDisplay" class="lobby-code">BAROCK</div>
+        <p>Beitritts-Link:</p>
+        <p><code id="shareUrlDisplay"></code></p>
+        <h4>Teilnehmende</h4>
+        <ul id="playersList" class="players-list">
+          <li>Hosting (Vortragsteam)</li>
+        </ul>
+        <button id="startClassQuizBtn" class="btn-primary" type="button">Quiz für die Klasse starten</button>
+        <p id="hostingStatus" class="status-msg"></p>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      const STORAGE_KEY = "barock_quiz_hosting_state";
+      const channel = ("BroadcastChannel" in window) ? new BroadcastChannel("barock-quiz-hosting") : null;
+
+      const QUESTIONS = [
+        {
+          q: "In welchen ungefähren Zeitraum fällt die Epoche des Barocks?",
+          options: ["1400–1500", "1600–1750", "1789–1815", "1850–1890"],
+          correct: 1
+        },
+        {
+          q: "Welches Stilmittel ist typisch für barocke Kunst und Architektur?",
+          options: [
+            "Schlichte Reduktion auf das Wesentliche",
+            "Prunk, Dynamik, Licht-Schatten-Kontraste und Theatralik",
+            "Streng geometrische Abstraktion",
+            "Flächige Malerei ohne Perspektive"
+          ],
+          correct: 1
+        },
+        {
+          q: "Welcher Komponist steht als Höhepunkt der Spätbarock-Musik (bis 1750)?",
+          options: ["Ludwig van Beethoven", "Johann Sebastian Bach", "Claude Debussy", "Igor Strawinsky"],
+          correct: 1
+        }
+      ];
+
+      const soloPanel = document.getElementById("soloPanel");
+      const soloContent = document.getElementById("soloContent");
+      const joinPanel = document.getElementById("joinPanel");
+      const hostingLobby = document.getElementById("hostingLobby");
+      const roomCodeDisplay = document.getElementById("roomCodeDisplay");
+      const shareUrlDisplay = document.getElementById("shareUrlDisplay");
+      const playersList = document.getElementById("playersList");
+      const hostingStatus = document.getElementById("hostingStatus");
+
+      function loadState() {
+        try {
+          return Object.assign(
+            { roomCode: "BAROCK", players: ["Hosting (Vortragsteam)"], started: false },
+            JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}")
+          );
+        } catch (e) {
+          return { roomCode: "BAROCK", players: ["Hosting (Vortragsteam)"], started: false };
+        }
+      }
+
+      function saveAndRender(nextState) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
+        } catch (e) {}
+        if (channel) {
+          try { channel.postMessage(nextState); } catch (e) {}
+        }
+        renderState(nextState);
+      }
+
+      function renderState(state) {
+        roomCodeDisplay.textContent = state.roomCode || "BAROCK";
+        const baseUrl = window.location.href.split("?")[0].split("#")[0];
+        shareUrlDisplay.textContent = baseUrl + "?room=" + encodeURIComponent(state.roomCode || "BAROCK");
+        playersList.innerHTML = "";
+        (state.players || ["Hosting (Vortragsteam)"]).forEach((name) => {
+          const li = document.createElement("li");
+          li.textContent = name;
+          playersList.appendChild(li);
+        });
+        hostingStatus.textContent = state.started
+          ? "Quiz läuft für die Klasse."
+          : "Bereit für den Beitritt der Klasse.";
+      }
+
+      document.getElementById("openHostingBtn").addEventListener("click", function () {
+        soloPanel.classList.add("hidden");
+        joinPanel.classList.add("hidden");
+        hostingLobby.classList.remove("hidden");
+        renderState(loadState());
+      });
+
+      document.getElementById("startClassQuizBtn").addEventListener("click", function () {
+        const st = loadState();
+        st.started = true;
+        saveAndRender(st);
+      });
+
+      let soloIndex = 0;
+      let soloScore = 0;
+
+      function renderSoloQuestion() {
+        const item = QUESTIONS[soloIndex];
+        if (!item) {
+          soloContent.innerHTML =
+            "<h2>Fertig!</h2><p>Du hast " +
+            soloScore +
+            " von " +
+            QUESTIONS.length +
+            " Fragen richtig beantwortet.</p>" +
+            '<button id="soloRestartBtn" class="btn-primary" type="button">Nochmal üben</button>';
+          document.getElementById("soloRestartBtn").addEventListener("click", function () {
+            soloIndex = 0;
+            soloScore = 0;
+            renderSoloQuestion();
+          });
+          return;
+        }
+
+        soloContent.innerHTML =
+          "<h2>Frage " + (soloIndex + 1) + " von " + QUESTIONS.length + "</h2><p>" + item.q + "</p>";
+        const list = document.createElement("div");
+        list.className = "options";
+        item.options.forEach((opt, idx) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "option-btn";
+          btn.textContent = opt;
+          btn.addEventListener("click", function () {
+            if (idx === item.correct) {
+              btn.classList.add("correct");
+              soloScore += 1;
+            } else {
+              btn.classList.add("wrong");
+            }
+            setTimeout(function () {
+              soloIndex += 1;
+              renderSoloQuestion();
+            }, 450);
+          });
+          list.appendChild(btn);
+        });
+        soloContent.appendChild(list);
+      }
+
+      document.getElementById("soloStartBtn").addEventListener("click", function () {
+        joinPanel.classList.add("hidden");
+        soloPanel.classList.remove("hidden");
+        soloIndex = 0;
+        soloScore = 0;
+        renderSoloQuestion();
+      });
+
+      document.getElementById("joinOpenBtn").addEventListener("click", function () {
+        soloPanel.classList.add("hidden");
+        joinPanel.classList.remove("hidden");
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("room")) {
+          document.getElementById("joinCodeInput").value = params.get("room");
+        }
+      });
+
+      document.getElementById("joinConfirmBtn").addEventListener("click", function () {
+        const st = loadState();
+        const name = (document.getElementById("joinNameInput").value || "").trim() || "Teilnehmende/r";
+        const code = (document.getElementById("joinCodeInput").value || "").trim() || st.roomCode;
+        st.roomCode = code;
+        if (!st.players.includes(name)) {
+          st.players.push(name);
+        }
+        saveAndRender(st);
+        document.getElementById("joinStatus").textContent = "Beigetreten als „" + name + "“ in Raum " + code + ".";
+      });
+
+      if (channel) {
+        channel.addEventListener("message", function (ev) {
+          if (ev.data) renderState(ev.data);
+        });
+      }
+
+      renderState(loadState());
+    })();
+  </script>
+</body>
+</html>
