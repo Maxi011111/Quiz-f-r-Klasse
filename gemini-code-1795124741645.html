@@ -1,0 +1,105 @@
+<script>
+(function () {
+  const CODE = "1750";
+  const channels = ["BroadcastChannel" in window ? new BroadcastChannel("barock-quiz") : null,
+                    "BroadcastChannel" in window ? new BroadcastChannel("barock-quiz-1750") : null,
+                    "BroadcastChannel" in window ? new BroadcastChannel("barock-quiz-host") : null].filter(Boolean);
+
+  function activateHostRoom() {
+    const keys = ["isHost", "host", "hostMode", "hostUnlocked", "host_pin", "pin", "barock_quiz_host_1750", "quiz_host"];
+    for (const k of keys) {
+      try {
+        localStorage.setItem(k, k.includes("pin") || k === "pin" || k === "hostUnlocked" ? CODE : "true");
+        sessionStorage.setItem(k, k.includes("pin") || k === "pin" || k === "hostUnlocked" ? CODE : "true");
+      } catch (e) {}
+    }
+
+    try {
+      window.dispatchEvent(new StorageEvent("storage", { key: "isHost", newValue: "true" }));
+      window.dispatchEvent(new CustomEvent("host:unlocked", { detail: { pin: CODE } }));
+    } catch (e) {}
+
+    for (const ch of channels) {
+      try { ch.postMessage({ type: "host-login", pin: CODE, isHost: true, openLobby: true }); } catch (e) {}
+    }
+
+    document.querySelectorAll("details").forEach((d) => { d.open = true; });
+
+    document.querySelectorAll("input, textarea").forEach((el) => {
+      const meta = ((el.id || "") + " " + (el.name || "") + " " + (el.placeholder || "") + " " + (el.ariaLabel || "")).toLowerCase();
+      if (el.type === "password" || /pin|code|host|pass/.test(meta)) {
+        el.value = CODE;
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+        const form = el.closest("form");
+        if (form) {
+          form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+        }
+      }
+    });
+
+    for (const prop of Object.getOwnPropertyNames(window)) {
+      let fn;
+      try { fn = window[prop]; } catch (e) { continue; }
+      if (typeof fn === "function" && /(host|lobby|room|unlock|pin|login|enter|start)/i.test(prop) && fn.length <= 2) {
+        try { fn(CODE); } catch (e) {}
+        try { fn(true); } catch (e) {}
+      }
+    }
+
+    document.querySelectorAll("button, [role='button'], a.btn, input[type='submit']").forEach((btn) => {
+      const txt = ((btn.textContent || "") + " " + (btn.id || "") + " " + (btn.value || "")).toLowerCase();
+      if (/raum als host|host öffnen|host-bereich|host starten|lobby öffnen|raum öffnen/.test(txt)) {
+        btn.disabled = false;
+        btn.removeAttribute("disabled");
+        btn.click();
+      }
+    });
+
+    document.querySelectorAll("*").forEach((el) => {
+      const tag = el.tagName;
+      if (tag === "SCRIPT" || tag === "STYLE" || tag === "HTML" || tag === "BODY" || tag === "HEAD") return;
+      const idClass = ((el.id || "") + " " + (typeof el.className === "string" ? el.className : "")).toLowerCase();
+      if (/(host-lobby|hostLobby|host_lobby|host-view|hostView|lobby-view|lobbyView|host-panel|hostPanel|room-screen|roomScreen)/.test(idClass)) {
+        el.hidden = false;
+        el.removeAttribute("hidden");
+        el.classList.remove("hidden", "hide", "d-none", "invisible", "closed", "locked");
+        if (getComputedStyle(el).display === "none") {
+          el.style.display = "block";
+        }
+        el.style.opacity = "1";
+        el.style.visibility = "visible";
+      }
+    });
+  }
+
+  function injectQuickTrigger() {
+    if (document.getElementById("fallback1750Trigger")) return;
+    const hostArea = document.querySelector("[id*='host'], [class*='host'], details") || document.body;
+    const trigger = document.createElement("div");
+    trigger.id = "fallback1750Trigger";
+    trigger.draggable = true;
+    trigger.textContent = "1750 Host-Lobby erzwingen (Klick oder Drag & Drop)";
+    trigger.style.cssText = "margin-top:8px;padding:6px 10px;font-size:12px;border:1px dashed currentColor;border-radius:6px;cursor:pointer;display:inline-block;opacity:0.85;";
+    trigger.addEventListener("click", (e) => { e.preventDefault(); activateHostRoom(); });
+    trigger.addEventListener("dragstart", (e) => {
+      if (e.dataTransfer) e.dataTransfer.setData("text/plain", CODE);
+    });
+    hostArea.appendChild(trigger);
+  }
+
+  window.addEventListener("dragover", (e) => { e.preventDefault(); });
+  window.addEventListener("drop", (e) => {
+    e.preventDefault();
+    activateHostRoom();
+  });
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", injectQuickTrigger);
+  } else {
+    injectQuickTrigger();
+  }
+
+  window.forceOpenHost1750 = activateHostRoom;
+})();
+</script>
