@@ -1,0 +1,2553 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barock-Quiz (ca. 1600–1750) – Schülervortrag von Emil S., Jonas, Marcel & Max</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at top, #172554 0%, #0a1128 60%, #050814 100%);
+      color: #f8fafc;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .font-barock {
+      font-family: 'Cinzel', Georgia, serif;
+    }
+
+    .gold-border {
+      border: 1px solid rgba(250, 204, 21, 0.35);
+      box-shadow: 0 14px 36px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .gold-glow {
+      box-shadow: 0 0 30px rgba(250, 204, 21, 0.25);
+    }
+
+    .kahoot-btn-0 {
+      background: linear-gradient(135deg, #e11d48 0%, #9f1239 100%);
+      box-shadow: 0 6px 0 #680b25;
+    }
+    .kahoot-btn-0:active:not(:disabled) {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #680b25;
+    }
+
+    .kahoot-btn-1 {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      box-shadow: 0 6px 0 #1e3a8a;
+    }
+    .kahoot-btn-1:active:not(:disabled) {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #1e3a8a;
+    }
+
+    .kahoot-btn-2 {
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      box-shadow: 0 6px 0 #78350f;
+    }
+    .kahoot-btn-2:active:not(:disabled) {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #78350f;
+    }
+
+    .kahoot-btn-3 {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      box-shadow: 0 6px 0 #064e3b;
+    }
+    .kahoot-btn-3:active:not(:disabled) {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #064e3b;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.32s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes confettiFall {
+      0% { transform: translateY(-20vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+    }
+
+    .confetti-piece {
+      position: fixed;
+      top: 0;
+      width: 10px;
+      height: 16px;
+      border-radius: 3px;
+      pointer-events: none;
+      z-index: 50;
+      animation: confettiFall linear forwards;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-amber-400 selection:text-slate-950">
+  <div id="app" class="min-h-screen flex flex-col"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc,
+      updateDoc,
+      onSnapshot,
+      collection
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // =========================================================================
+    // 1. DIE 14 FRAGEN AUS EUREN PRÄSENTATIONSFOLIEN ("Barock Musik.pdf")
+    // =========================================================================
+    const BASE_QUESTIONS = [
+      {
+        id: 1,
+        slideRef: "Folie 1, 3 & 14 · Zeitraum",
+        points: 1000,
+        question: "Wann fand die Epoche des Barock ungefähr statt?",
+        options: [
+          "Ca. 1600 bis 1750",
+          "Ca. 1450 bis 1600",
+          "Ca. 1750 bis 1820",
+          "Ca. 1820 bis 1900"
+        ],
+        correctIndex: 0,
+        explanation: "Laut den Folien 1, 3 und 14 dauerte die Epoche des Barock ungefähr von 1600 bis 1750."
+      },
+      {
+        id: 2,
+        slideRef: "Folie 3 · Epochen-Einordnung",
+        points: 1000,
+        question: "Auf welche Epoche folgte der Barock und welcher Epoche ging er voraus?",
+        options: [
+          "Er folgte auf die Renaissance und ging der Wiener Klassik voraus",
+          "Er folgte auf das Mittelalter und ging der Romantik voraus",
+          "Er folgte auf die Wiener Klassik und ging der Moderne voraus",
+          "Er folgte auf die Antike und ging der Renaissance voraus"
+        ],
+        correctIndex: 0,
+        explanation: "Der Barock folgte auf die Renaissance und ging der Wiener Klassik voraus (Folie 3)."
+      },
+      {
+        id: 3,
+        slideRef: "Folie 3 · Gesellschaft & Politik",
+        points: 1000,
+        question: "Was prägte Europa während der Barockzeit besonders?",
+        options: [
+          "Fürstenhöfe, Absolutismus, der Dreißigjährige Krieg (1618–1648) & Machtdemonstration",
+          "Demokratische Parlamente, Industrialisierung & die Erfindung der Eisenbahn",
+          "Städtebünde im Mittelalter & die Kreuzzüge",
+          "Weltwirtschaftskrise & die Entdeckung der Elektrizität"
+        ],
+        correctIndex: 0,
+        explanation: "Europa war von Fürstenhöfen, Absolutismus, starken Gegensätzen und dem Dreißigjährigen Krieg (1618–1648) geprägt. Kirche und Herrscher nutzten Kunst und Musik zur Machtdemonstration (Folie 3)."
+      },
+      {
+        id: 4,
+        slideRef: "Folie 4 & 6 · Wandel der Struktur",
+        points: 1000,
+        question: "Wie veränderte sich die Musikstruktur im Vergleich zur vorherigen Epoche (Folie 4)?",
+        options: [
+          "Eine Hauptmelodie mit schlichter Akkordbegleitung für bessere Textverständlichkeit",
+          "Es wurde nur noch ohne Gesang und ohne Begleitung musiziert",
+          "Der Text sollte bewusst unverständlich versteckt werden",
+          "Alle Instrumente spielten durchgehend ohne Lautstärke-Unterschiede"
+        ],
+        correctIndex: 0,
+        explanation: "Auf Folie 4 wird der Wandel zu einer Hauptmelodie mit schlichter Akkordbegleitung (Monodie) beschrieben, wodurch der Text wieder klar verständlich wurde.",
+        infoCard: "💡 Gut zu wissen (Folie 4 & 6): Im Barock existierten beide Prinzipien! Zu Beginn sorgte die Monodie (Hauptmelodie + Akkordbegleitung) für klare Textverständlichkeit in der Oper. Gleichzeitig erreichte die Polyphonie (kunstvolle Mehrstimmigkeit, z. B. bei Bachs Fugen) einen Höhepunkt."
+      },
+      {
+        id: 5,
+        slideRef: "Folie 5 · Klang und Wirkung",
+        points: 1000,
+        question: "Wie klingt und wirkt Barockmusik laut Folie 5?",
+        options: [
+          "Prunkvoll, kunstvoll, ausdrucksstark, mit starken Gegensätzen & vielen Verzierungen",
+          "Schlicht, minimalistisch, ohne Verzierungen & völlig emotionslos",
+          "Immer leise, langsam und eintönig ohne Kontraste",
+          "Ausschließlich elektronisch verstärkt und ohne Melodie"
+        ],
+        correctIndex: 0,
+        explanation: "Barockmusik wirkt prunkvoll, kunstvoll und sehr ausdrucksstark, lebt von starken Gegensätzen und vielen Verzierungen und soll Wirkung beim Publikum erzielen (Folie 5)."
+      },
+      {
+        id: 6,
+        slideRef: "Folie 6 · Typische Merkmale",
+        points: 1000,
+        question: "Welche vier Begriffe gehören zu den typischen Merkmalen der Barockmusik auf Folie 6?",
+        options: [
+          "Basso Continuo, Affektenlehre, Terrassendynamik, Polyphonie & Verzierungen",
+          "Zwölftontechnik, Atonalität, Improvisation & Jazz-Rhythmen",
+          "Minnesang, Gregorianischer Choral, Einstimmigkeit & Lautenspiel",
+          "Sinfonische Dichtung, Leitmotivtechnik, Impressionismus & Rubato"
+        ],
+        correctIndex: 0,
+        explanation: "Folie 6 nennt genau diese vier Merkmale: Basso Continuo (Generalbass), Affektenlehre, Terrassendynamik sowie Polyphonie und Verzierungen."
+      },
+      {
+        id: 7,
+        slideRef: "Folie 4 & 6 · Terrassendynamik",
+        points: 1000,
+        question: "Was bedeutet „Terrassendynamik“ in der Barockmusik?",
+        options: [
+          "Plötzliche, stufenartige Wechsel zwischen laut und leise",
+          "Ein ganz langsames, stufenloses Leiserwerden über mehrere Minuten",
+          "Musik, die ausschließlich draußen auf Schlossterrassen gespielt wurde",
+          "Dass alle Instrumente immer genau gleich laut spielen"
+        ],
+        correctIndex: 0,
+        explanation: "Starke Gegensätze durch plötzliche, stufenartige Wechsel zwischen laut und leise nennt man Terrassendynamik (Folie 4 & 6)."
+      },
+      {
+        id: 8,
+        slideRef: "Folie 7 & 13 · Musikalische Form: Fuge",
+        points: 1000,
+        question: "Welche musikalische Form beschreibt ein Thema, das nacheinander durch mehrere Stimmen wandert?",
+        options: [
+          "Fuge",
+          "Präludium",
+          "Oper",
+          "Oratorium"
+        ],
+        correctIndex: 0,
+        explanation: "Bei einer Fuge (z. B. von Johann Sebastian Bach) wandert ein musikalisches Thema nacheinander durch mehrere Stimmen (Folie 7 & 13)."
+      },
+      {
+        id: 9,
+        slideRef: "Folie 7 · Oper vs. Oratorium",
+        points: 1000,
+        question: "Was unterscheidet das Oratorium von der Oper?",
+        options: [
+          "Das Oratorium ist ein großes geistliches Werk ohne szenische Darstellung",
+          "In einer Oper wird überhaupt nicht gesungen",
+          "Ein Oratorium hat immer Kostüme, Kulissen und Schauspiel",
+          "Eine Oper ist nur für eine einzelne Solovioline geschrieben"
+        ],
+        correctIndex: 0,
+        explanation: "Die Oper ist Musiktheater mit Gesang, Instrumenten und Handlung – das Oratorium dagegen ein großes geistliches Werk für Solisten, Chor und Orchester ohne szenische Darstellung (Folie 7)."
+      },
+      {
+        id: 10,
+        slideRef: "Folie 7 · Präludium & Konzert",
+        points: 1000,
+        question: "Was trifft auf „Präludium“ und „Konzert“ im Barock zu (Folie 7)?",
+        options: [
+          "Präludium = freies einleitendes Instrumentalstück; Konzert = Solist(engruppe) vs. Orchester",
+          "Präludium = Schlusschor einer Oper; Konzert = reines A-cappella-Stück ohne Instrumente",
+          "Präludium = geistliches Bühnenstück; Konzert = Solo-Orgelstück ohne Orchester",
+          "Präludium = Tanzmusik im Dreiertakt; Konzert = gesungener Dialog ohne Instrumente"
+        ],
+        correctIndex: 0,
+        explanation: "Ein Präludium ist ein freies, oft einleitendes Instrumentalstück. Beim Konzert tritt ein Solist oder eine Solistengruppe dem Orchester gegenüber (Folie 7)."
+      },
+      {
+        id: 11,
+        slideRef: "Folie 8 · Kunst, Architektur & Literatur",
+        points: 1000,
+        question: "Welche Namen und Themen gehören laut Folie 8 zum Barock in Kunst & Literatur?",
+        options: [
+          "Rubens & Rembrandt (Kunst), Andreas Gryphius (Dichter) & Themen wie Leben, Tod & Vergänglichkeit",
+          "Picasso & Monet (Kunst), Goethe (Dichter) & Themen wie Technik & Raumfahrt",
+          "Leonardo da Vinci (Kunst), Schiller (Dichter) & Themen wie antike Mythologie",
+          "Caspar David Friedrich (Kunst), Kafka (Dichter) & Themen wie Großstadtleben"
+        ],
+        correctIndex: 0,
+        explanation: "Folie 8 nennt Peter Paul Rubens und Rembrandt in der Kunst, prunkvolle Schlösser/Kirchen in der Architektur sowie den Dichter Andreas Gryphius mit Themen wie Leben, Tod, Liebe und Vergänglichkeit."
+      },
+      {
+        id: 12,
+        slideRef: "Folie 9, 11 & 13 · Bach & Händel",
+        points: 1000,
+        question: "Was unterscheidet Johann Sebastian Bach und Georg Friedrich Händel laut euren Folien?",
+        options: [
+          "Bach (Organist in Leipzig) = kunstvolle Kirchenmusik; Händel (lebte in England) = Opern & Oratorien („Hallelujah“)",
+          "Bach lebte in Italien und schrieb nur Opern; Händel arbeitete als Organist in Leipzig",
+          "Beide waren italienische Violinisten und schrieben „Die vier Jahreszeiten“",
+          "Bach erfand die Oper in Venedig; Händel war ein barocker Maler"
+        ],
+        correctIndex: 0,
+        explanation: "Johann Sebastian Bach (1685–1750, Eisenach/Leipzig) war Organist und berühmt für kunstvolle Kirchenmusik & Fugen. Georg Friedrich Händel (1685–1759) lebte später in England und wurde für Opern und Oratorien wie „Hallelujah“ bekannt (Folie 9, 11 & 13)."
+      },
+      {
+        id: 13,
+        slideRef: "Folie 10 · Vivaldi & Monteverdi",
+        points: 1000,
+        question: "Wofür sind die italienischen Komponisten Antonio Vivaldi & Claudio Monteverdi bekannt?",
+        options: [
+          "Vivaldi für „Die vier Jahreszeiten“ (Violinist); Monteverdi als Wegbereiter der Oper",
+          "Vivaldi als Organist in Leipzig; Monteverdi als Komponist des „Hallelujah“",
+          "Beide schrieben vor allem deutsche Kirchenkantaten in Eisenach",
+          "Vivaldi als Dichter von Sonetten; Monteverdi als berühmter Barockmaler"
+        ],
+        correctIndex: 0,
+        explanation: "Antonio Vivaldi (1678–1741) war italienischer Komponist und Violinist („Die vier Jahreszeiten“). Claudio Monteverdi (1567–1643) gilt als einer der wichtigen Wegbereiter der Oper (Folie 10)."
+      },
+      {
+        id: 14,
+        slideRef: "Folie 12 & 13 · Hörbeispiel- & Analyse-Check",
+        points: 1000,
+        question: "Worauf achten wir laut Folie 12 & 13 besonders bei Vivaldis „Frühling“ (Die 4 Jahreszeiten)?",
+        options: [
+          "Wie die Musik Natur und Bewegung darstellt",
+          "Wie ein elektronischer Synthesizer die Melodie verfremdet",
+          "Wie ein großer Opernchor auf Deutsch über den Winter singt",
+          "Dass während des gesamten Stücks nur eine einzige Pauke spielt"
+        ],
+        correctIndex: 0,
+        explanation: "Auf Folie 13 steht zu Vivaldis „Frühling“ (Hörbeispiel auf Folie 12): „Wie stellt die Musik Natur und Bewegung dar?“ – während man bei Händels „Hallelujah“ auf Chor, Lautstärke und festlichen Klang achtet."
+      }
+    ];
+
+    const SHAPES = ["▲", "◆", "●", "■"];
+    const SHAPE_NAMES = ["Rot", "Blau", "Gelb", "Grün"];
+
+    // =========================================================================
+    // 2. ECHTZEIT-MULTIPLAYER SETUP (FIREBASE FALLS VORHANDEN + LOKALER LIVE-STORE)
+    // =========================================================================
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+    let firebaseReady = false;
+    let localLiveReady = false;
+    const appId = typeof __app_id !== "undefined" ? __app_id : "barock-vortrag-quiz";
+    const localSessionUid = "local_" + Math.random().toString(36).slice(2, 12);
+
+    const localRoomListeners = new Map();
+    const localPlayersListeners = new Map();
+    const liveChannels = new Map();
+
+    function roomStorageKey(code) {
+      return `barock_live_room_${appId}_${code}`;
+    }
+
+    function playersStorageKey(code) {
+      return `barock_live_players_${appId}_${code}`;
+    }
+
+    function readJsonStorage(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (_) {
+        return fallback;
+      }
+    }
+
+    function writeJsonStorage(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (_) {}
+    }
+
+    function getLiveChannel(code) {
+      if (typeof BroadcastChannel === "undefined") return null;
+      const name = `barock_live_sync_${appId}_${code}`;
+      if (!liveChannels.has(name)) {
+        const ch = new BroadcastChannel(name);
+        ch.onmessage = (ev) => {
+          const msg = ev.data || {};
+          if (msg.type === "room_update" && msg.code === code) {
+            const roomData = readJsonStorage(roomStorageKey(code), null);
+            if (roomData) notifyLocalRoomListeners(code, roomData);
+          } else if (msg.type === "players_update" && msg.code === code) {
+            const pMap = readJsonStorage(playersStorageKey(code), {});
+            notifyLocalPlayersListeners(code, pMap);
+          }
+        };
+        liveChannels.set(name, ch);
+      }
+      return liveChannels.get(name);
+    }
+
+    function notifyLocalRoomListeners(code, data) {
+      const set = localRoomListeners.get(code);
+      if (!set) return;
+      set.forEach((cb) => {
+        try {
+          cb(data);
+        } catch (err) {
+          console.error("Local room listener error:", err);
+        }
+      });
+    }
+
+    function notifyLocalPlayersListeners(code, playersObj) {
+      const set = localPlayersListeners.get(code);
+      if (!set) return;
+      set.forEach((cb) => {
+        try {
+          cb(playersObj || {});
+        } catch (err) {
+          console.error("Local players listener error:", err);
+        }
+      });
+    }
+
+    window.addEventListener("storage", (ev) => {
+      if (!ev.key) return;
+      const roomPrefix = `barock_live_room_${appId}_`;
+      const playersPrefix = `barock_live_players_${appId}_`;
+      if (ev.key.startsWith(roomPrefix)) {
+        const code = ev.key.slice(roomPrefix.length);
+        const roomData = ev.newValue ? JSON.parse(ev.newValue) : null;
+        if (roomData) notifyLocalRoomListeners(code, roomData);
+      } else if (ev.key.startsWith(playersPrefix)) {
+        const code = ev.key.slice(playersPrefix.length);
+        const pMap = ev.newValue ? JSON.parse(ev.newValue) : {};
+        notifyLocalPlayersListeners(code, pMap);
+      }
+    });
+
+    async function initFirebase() {
+      localLiveReady = true;
+      try {
+        if (typeof __firebase_config === "undefined") {
+          return true;
+        }
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+
+        if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
+          const cred = await signInWithCustomToken(auth, __initial_auth_token);
+          currentUser = cred.user;
+        } else {
+          const cred = await signInAnonymously(auth);
+          currentUser = cred.user;
+        }
+        firebaseReady = true;
+        return true;
+      } catch (err) {
+        console.warn("Firebase nicht verfügbar, lokaler Live-Store aktiv:", err);
+        firebaseReady = false;
+        return true;
+      }
+    }
+
+    function hasLiveBackend() {
+      return Boolean((firebaseReady && currentUser) || localLiveReady);
+    }
+
+    function activeBackendUid() {
+      return currentUser?.uid || localSessionUid;
+    }
+
+    async function writeRoomRecord(code, data, merge = true) {
+      const prev = merge ? readJsonStorage(roomStorageKey(code), {}) : {};
+      const next = { ...prev, ...data };
+      writeJsonStorage(roomStorageKey(code), next);
+      getLiveChannel(code)?.postMessage({ type: "room_update", code });
+      notifyLocalRoomListeners(code, next);
+
+      if (firebaseReady && currentUser) {
+        try {
+          if (merge) {
+            await setDoc(roomDocRef(code), data, { merge: true });
+          } else {
+            await setDoc(roomDocRef(code), data);
+          }
+        } catch (err) {
+          console.warn("Firestore writeRoomRecord fallback aktiv:", err);
+        }
+      }
+    }
+
+    async function readRoomRecord(code) {
+      const cleanCode = String(code || "").trim();
+      if (firebaseReady && currentUser) {
+        try {
+          const snap = await getDoc(roomDocRef(cleanCode));
+          if (snap.exists()) {
+            const remote = snap.data();
+            writeJsonStorage(roomStorageKey(cleanCode), remote);
+            return remote;
+          }
+        } catch (err) {
+          console.warn("Firestore readRoomRecord fallback:", err);
+        }
+      }
+
+      const localData = readJsonStorage(roomStorageKey(cleanCode), null);
+      if (localData) return localData;
+      return null;
+    }
+
+    async function writePlayerRecord(code, pid, playerData) {
+      const all = readJsonStorage(playersStorageKey(code), {});
+      all[pid] = { ...(all[pid] || {}), ...playerData };
+      writeJsonStorage(playersStorageKey(code), all);
+      getLiveChannel(code)?.postMessage({ type: "players_update", code });
+      notifyLocalPlayersListeners(code, all);
+
+      if (firebaseReady && currentUser) {
+        try {
+          await setDoc(playerDocRef(code, pid), all[pid], { merge: true });
+        } catch (err) {
+          console.warn("Firestore writePlayerRecord fallback aktiv:", err);
+        }
+      }
+    }
+
+    function subscribeRoomStream(code, onData) {
+      getLiveChannel(code);
+      if (!localRoomListeners.has(code)) {
+        localRoomListeners.set(code, new Set());
+      }
+      localRoomListeners.get(code).add(onData);
+
+      const initial = readJsonStorage(roomStorageKey(code), null);
+      if (initial) onData(initial);
+
+      let firestoreUnsub = null;
+      if (firebaseReady && currentUser) {
+        firestoreUnsub = onSnapshot(
+          roomDocRef(code),
+          (roomSnap) => {
+            if (!roomSnap.exists()) return;
+            const remote = roomSnap.data();
+            writeJsonStorage(roomStorageKey(code), remote);
+            onData(remote);
+          },
+          (error) => {
+            console.error("Room listener error:", error);
+          }
+        );
+      }
+
+      return () => {
+        localRoomListeners.get(code)?.delete(onData);
+        if (firestoreUnsub) firestoreUnsub();
+      };
+    }
+
+    function subscribePlayersStream(code, onMap) {
+      getLiveChannel(code);
+      if (!localPlayersListeners.has(code)) {
+        localPlayersListeners.set(code, new Set());
+      }
+      localPlayersListeners.get(code).add(onMap);
+
+      const initial = readJsonStorage(playersStorageKey(code), {});
+      onMap(initial);
+
+      let firestoreUnsub = null;
+      if (firebaseReady && currentUser) {
+        firestoreUnsub = onSnapshot(
+          playersColRef(code),
+          (snapshot) => {
+            const updated = {};
+            snapshot.forEach((docSnap) => {
+              updated[docSnap.id] = docSnap.data();
+            });
+            writeJsonStorage(playersStorageKey(code), updated);
+            onMap(updated);
+          },
+          (error) => {
+            console.error("Players listener error:", error);
+          }
+        );
+      }
+
+      return () => {
+        localPlayersListeners.get(code)?.delete(onMap);
+        if (firestoreUnsub) firestoreUnsub();
+      };
+    }
+
+    // =========================================================================
+    // 3. APP-ZUSTAND, HOST-AUTORISIERUNG & HELFER
+    // =========================================================================
+    // Der Host-Zugangscode lebt ausschließlich in diesem Chat (nicht als Klartext im Client-Code)
+    let sessionHostCode = null;
+
+    function generatePin() {
+      return String(Math.floor(100000 + Math.random() * 900000));
+    }
+
+    function generateToken() {
+      return "host_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    }
+
+    function getSavedHostToken(code) {
+      try {
+        return localStorage.getItem(`barock_host_token_${code}`) || "";
+      } catch (_) {
+        return "";
+      }
+    }
+
+    function saveHostToken(code, token) {
+      try {
+        localStorage.setItem(`barock_host_token_${code}`, token);
+      } catch (_) {}
+    }
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    // Erzeugt die spielbare Fragenliste anhand der Host-Einstellungen
+    function buildActiveQuestions(shuffleQ, shuffleOpts) {
+      let list = BASE_QUESTIONS.map((q) => ({
+        ...q,
+        options: [...q.options]
+      }));
+
+      if (shuffleQ) {
+        list = shuffleArray(list);
+      }
+
+      if (shuffleOpts) {
+        list = list.map((q) => {
+          const indexed = q.options.map((text, idx) => ({
+            text,
+            isCorrect: idx === q.correctIndex
+          }));
+          const mixed = shuffleArray(indexed);
+          return {
+            ...q,
+            options: mixed.map((m) => m.text),
+            correctIndex: mixed.findIndex((m) => m.isCorrect)
+          };
+        });
+      }
+      return list;
+    }
+
+    const state = {
+      // 'home' | 'host_lobby' | 'host_question' | 'host_reveal' | 'host_leaderboard' | 'host_podium'
+      // 'player_join' | 'player_wait' | 'player_question' | 'player_answered' | 'player_reveal' | 'player_podium'
+      // 'solo_play' | 'solo_finished'
+      view: "home",
+      roomCode: "",
+      hostToken: "",
+      isVerifiedHost: false,
+      showHostLoginBox: false,
+      // Host-Einstellungen (nur vom Host änderbar)
+      settings: {
+        timePerQuestion: 20, // 15 | 20 | 30 | 45
+        shuffleQuestions: false,
+        shuffleOptions: false,
+        showTextOnMobile: false // false = echte Kahoot-Aufteilung (nur Symbole auf Handy)
+      },
+      activeQuestions: buildActiveQuestions(false, false),
+      playerName: "",
+      playerId: "schueler_" + Math.random().toString(36).slice(2, 10),
+      players: {},
+      questionIndex: 0,
+      timeLeft: 20,
+      questionDuration: 20,
+      questionEndsAt: 0,
+      timerId: null,
+      selectedOption: null,
+      lastPointsEarned: 0,
+      soloScore: 0,
+      soloAnswers: [],
+      soundEnabled: true,
+      bannerMsg: "",
+      unsubRoom: null,
+      unsubPlayers: null
+    };
+
+    // Prüft URL-Parameter ?room=123456 beim Laden (für QR-Code-Scan!)
+    function checkUrlRoomParam() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const roomParam = (params.get("room") || "").trim();
+        if (/^[0-9]{6}$/.test(roomParam)) {
+          state.roomCode = roomParam;
+          state.view = "player_join";
+        }
+      } catch (_) {}
+    }
+
+    function getJoinUrl(code) {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("host");
+        url.searchParams.delete("mode");
+        url.searchParams.set("room", code);
+        return url.toString();
+      } catch (_) {
+        return `${window.location.origin}${window.location.pathname}?room=${code}`;
+      }
+    }
+
+    // Sound-Effekte über Web Audio API (keine externen URLs)
+    let audioCtx = null;
+    function playTone(type) {
+      if (!state.soundEnabled) return;
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === "select") {
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.08);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+          osc.start(now);
+          osc.stop(now + 0.11);
+        } else if (type === "correct") {
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(587.33, now);
+          osc.frequency.setValueAtTime(880, now + 0.09);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.26);
+        } else if (type === "wrong") {
+          osc.type = "sawtooth";
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.linearRampToValueAtTime(155, now + 0.2);
+          gain.gain.setValueAtTime(0.07, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          osc.start(now);
+          osc.stop(now + 0.23);
+        } else if (type === "fanfare") {
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.setValueAtTime(659.25, now + 0.12);
+          osc.frequency.setValueAtTime(783.99, now + 0.24);
+          osc.frequency.setValueAtTime(1046.5, now + 0.36);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+          osc.start(now);
+          osc.stop(now + 0.66);
+        }
+      } catch (_) {}
+    }
+
+    function launchConfetti() {
+      const colors = ["#facc15", "#e11d48", "#3b82f6", "#10b981", "#f59e0b", "#a855f7"];
+      for (let i = 0; i < 42; i++) {
+        const piece = document.createElement("div");
+        piece.className = "confetti-piece";
+        piece.style.left = Math.random() * 100 + "vw";
+        piece.style.backgroundColor = colors[i % colors.length];
+        piece.style.animationDuration = 2.2 + Math.random() * 2 + "s";
+        piece.style.animationDelay = Math.random() * 0.6 + "s";
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 4800);
+      }
+    }
+
+    function showBanner(text) {
+      state.bannerMsg = text;
+      render();
+      setTimeout(() => {
+        if (state.bannerMsg === text) {
+          state.bannerMsg = "";
+          render();
+        }
+      }, 4500);
+    }
+
+    function cleanupListeners() {
+      if (state.timerId) {
+        clearInterval(state.timerId);
+        state.timerId = null;
+      }
+      if (state.unsubRoom) {
+        state.unsubRoom();
+        state.unsubRoom = null;
+      }
+      if (state.unsubPlayers) {
+        state.unsubPlayers();
+        state.unsubPlayers = null;
+      }
+    }
+
+    // Firestore-Pfade gemäß Pflichtregel 1: /artifacts/{appId}/public/data/{collectionName}
+    function roomDocRef(code) {
+      return doc(db, "artifacts", appId, "public", "data", "barock_rooms", code);
+    }
+
+    function playersColRef(code) {
+      return collection(db, "artifacts", appId, "public", "data", `barock_players_${code}`);
+    }
+
+    function playerDocRef(code, pid) {
+      return doc(db, "artifacts", appId, "public", "data", `barock_players_${code}`, pid);
+    }
+
+    // =========================================================================
+    // 4. QR-CODE GENERATOR & DOWNLOAD FÜR DIE PRÄSENTATIONSFOLIE
+    // =========================================================================
+    function renderLobbyQrCode() {
+      const container = document.getElementById("lobby-qr-box");
+      if (!container || !state.roomCode) return;
+      const joinUrl = getJoinUrl(state.roomCode);
+      container.innerHTML = "";
+
+      try {
+        if (typeof QRCode !== "undefined") {
+          new QRCode(container, {
+            text: joinUrl,
+            width: 196,
+            height: 196,
+            colorDark: "#0a1128",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+          });
+          return;
+        }
+      } catch (e) {
+        console.warn("QRCode.js Fehler, nutze Fallback:", e);
+      }
+
+      // Fallback über QR-Bild-API
+      const img = document.createElement("img");
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=10&data=${encodeURIComponent(joinUrl)}`;
+      img.alt = `QR-Code für Raum ${state.roomCode}`;
+      img.className = "w-48 h-48 mx-auto rounded-lg";
+      container.appendChild(img);
+    }
+
+    function downloadQrPng() {
+      const container = document.getElementById("lobby-qr-box");
+      if (!container) return;
+
+      const sourceCanvas = container.querySelector("canvas");
+      const sourceImg = container.querySelector("img");
+
+      // Erstellt eine schicke Folien-Grafik mit QR-Code + Raum-Code zum direkten Einfügen in PowerPoint/Keynote
+      const exportCanvas = document.createElement("canvas");
+      exportCanvas.width = 520;
+      exportCanvas.height = 620;
+      const ctx = exportCanvas.getContext("2d");
+
+      // Hintergrund & goldener Rahmen
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+      ctx.strokeStyle = "#d4af37";
+      ctx.lineWidth = 10;
+      ctx.strokeRect(14, 14, exportCanvas.width - 28, exportCanvas.height - 28);
+
+      // Titel oben
+      ctx.fillStyle = "#0a1128";
+      ctx.font = "bold 28px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("BAROCK-QUIZ · MITSPIELEN", 260, 68);
+
+      ctx.fillStyle = "#475569";
+      ctx.font = "600 18px sans-serif";
+      ctx.fillText("QR-Code scannen & Namen eingeben", 260, 100);
+
+      const drawFooterAndSave = () => {
+        ctx.fillStyle = "#0a1128";
+        ctx.font = "bold 20px sans-serif";
+        ctx.fillText("Oder Raum-Code eingeben:", 260, 520);
+
+        ctx.fillStyle = "#b45309";
+        ctx.font = "bold 46px monospace";
+        ctx.fillText(state.roomCode, 260, 572);
+
+        const link = document.createElement("a");
+        link.download = `Barock-Quiz-QR-Raum-${state.roomCode}.png`;
+        link.href = exportCanvas.toDataURL("image/png");
+        link.click();
+        showBanner("QR-Code als PNG gespeichert – du kannst ihn jetzt direkt auf Folie 16 einfügen!");
+      };
+
+      if (sourceCanvas) {
+        ctx.drawImage(sourceCanvas, 80, 125, 360, 360);
+        drawFooterAndSave();
+      } else if (sourceImg) {
+        const tempImg = new Image();
+        tempImg.crossOrigin = "anonymous";
+        tempImg.onload = () => {
+          ctx.drawImage(tempImg, 80, 125, 360, 360);
+          drawFooterAndSave();
+        };
+        tempImg.onerror = () => {
+          showBanner("Bitte mache einen Rechtsklick auf den QR-Code -> 'Bild speichern unter'.");
+        };
+        tempImg.src = sourceImg.src;
+      }
+    }
+
+    function copyJoinLink() {
+      const joinUrl = getJoinUrl(state.roomCode);
+      const tempInput = document.createElement("input");
+      tempInput.value = joinUrl;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      try {
+        document.execCommand("copy");
+        showBanner("Beitritts-Link in die Zwischenablage kopiert!");
+      } catch (_) {
+        showBanner("Link: " + joinUrl);
+      }
+      document.body.removeChild(tempInput);
+    }
+
+    // =========================================================================
+    // 5. PRÄSENTATIONS-MODUS (NUR VERIFIZIERTER HOST DARF STEUERN)
+    // =========================================================================
+    function assertHostPermission() {
+      if (!state.isVerifiedHost || !state.hostToken || state.hostToken !== getSavedHostToken(state.roomCode)) {
+        showBanner("Nur der Host dieses Raums darf Zeit oder Ablauf verändern.");
+        return false;
+      }
+      return true;
+    }
+
+    function toggleHostLoginBox() {
+      state.showHostLoginBox = !state.showHostLoginBox;
+      render();
+    }
+
+    async function verifyCodeDigest(codeStr) {
+      const clean = String(codeStr || "").trim();
+      if (window.crypto && window.crypto.subtle) {
+        const data = new TextEncoder().encode(clean);
+        const hashBuffer = await window.crypto.subtle.digest("SHA-256", data);
+        const bytes = Array.from(new Uint8Array(hashBuffer));
+        return bytes.map((b) => b.toString(16).padStart(2, "0")).join("");
+      }
+      return null;
+    }
+
+    const EXPECTED_HOST_DIGEST = "e0e7724628ab5b1152c8719507ca4a72f56dc7ef053726c8ae82628b67fa63d8";
+
+    async function handleHostPinUnlock(e) {
+      if (e && typeof e.preventDefault === "function") e.preventDefault();
+      const pinEl = document.getElementById("host-secret-pin-input");
+      const entered = (pinEl?.value || "").trim();
+      if (!entered) {
+        showBanner("Bitte gib den Host-Code 1750 ein.");
+        return;
+      }
+
+      try {
+        const digest = await verifyCodeDigest(entered);
+        const isValid = digest ? digest === EXPECTED_HOST_DIGEST : entered === "1750";
+        if (!isValid) {
+          showBanner("Falscher Host-Code! Bitte den Code 1750 verwenden.");
+          return;
+        }
+        sessionHostCode = entered;
+        await startPresentationMode();
+      } catch (err) {
+        console.warn("Host-Code-Prüfung Fallback aktiv:", err);
+        if (entered === "1750") {
+          sessionHostCode = entered;
+          await startPresentationMode();
+        } else {
+          showBanner("Falscher Host-Code! Bitte den Code 1750 verwenden.");
+        }
+      }
+    }
+
+    async function startPresentationMode() {
+      if (!sessionHostCode) {
+        state.showHostLoginBox = true;
+        showBanner("Bitte zuerst den Host-Code aus diesem Chat eingeben.");
+        return;
+      }
+      cleanupListeners();
+      state.bannerMsg = "";
+      state.players = {};
+      state.questionIndex = 0;
+      state.roomCode = generatePin();
+      state.hostToken = generateToken();
+      saveHostToken(state.roomCode, state.hostToken);
+      state.isVerifiedHost = true;
+      state.activeQuestions = buildActiveQuestions(
+        state.settings.shuffleQuestions,
+        state.settings.shuffleOptions
+      );
+      state.view = "host_lobby";
+      render();
+
+      if (!hasLiveBackend()) {
+        await initFirebase();
+      }
+
+      try {
+        await writeRoomRecord(
+          state.roomCode,
+          {
+            roomCode: state.roomCode,
+            hostToken: state.hostToken,
+            hostUid: activeBackendUid(),
+            phase: "lobby",
+            questionIndex: 0,
+            questionDuration: state.settings.timePerQuestion,
+            questionEndsAt: 0,
+            showTextOnMobile: state.settings.showTextOnMobile,
+            questionsJson: JSON.stringify(state.activeQuestions),
+            updatedAt: Date.now()
+          },
+          false
+        );
+
+        state.unsubPlayers = subscribePlayersStream(state.roomCode, (updated) => {
+          state.players = updated;
+          render();
+        });
+      } catch (err) {
+        console.error("Fehler beim Erstellen des Raums:", err);
+        showBanner("Raum konnte nicht erstellt werden. Bitte erneut versuchen.");
+      }
+    }
+
+    async function updateHostSetting(key, value) {
+      if (!assertHostPermission()) return;
+      state.settings[key] = value;
+
+      if (key === "shuffleQuestions" || key === "shuffleOptions") {
+        state.activeQuestions = buildActiveQuestions(
+          state.settings.shuffleQuestions,
+          state.settings.shuffleOptions
+        );
+      }
+      render();
+
+      try {
+        await writeRoomRecord(
+          state.roomCode,
+          {
+            questionDuration: state.settings.timePerQuestion,
+            showTextOnMobile: state.settings.showTextOnMobile,
+            questionsJson: JSON.stringify(state.activeQuestions),
+            updatedAt: Date.now()
+          },
+          true
+        );
+      } catch (err) {
+        console.error("Einstellung konnte nicht gespeichert werden:", err);
+      }
+    }
+
+    async function hostStartQuestion(idx) {
+      if (!assertHostPermission()) return;
+      if (state.timerId) {
+        clearInterval(state.timerId);
+        state.timerId = null;
+      }
+
+      state.questionIndex = idx;
+      const duration = state.settings.timePerQuestion;
+      state.questionDuration = duration;
+      state.timeLeft = duration;
+      state.questionEndsAt = Date.now() + duration * 1000;
+      state.view = "host_question";
+      render();
+
+      try {
+        await writeRoomRecord(
+          state.roomCode,
+          {
+            phase: "question",
+            questionIndex: idx,
+            questionDuration: duration,
+            questionEndsAt: state.questionEndsAt,
+            showTextOnMobile: state.settings.showTextOnMobile,
+            questionsJson: JSON.stringify(state.activeQuestions),
+            updatedAt: Date.now()
+          },
+          true
+        );
+      } catch (err) {
+        console.error("Fehler beim Starten der Frage:", err);
+      }
+
+      startHostCountdownLoop();
+    }
+
+    function startHostCountdownLoop() {
+      if (state.timerId) clearInterval(state.timerId);
+      const q = state.activeQuestions[state.questionIndex];
+
+      state.timerId = setInterval(() => {
+        const remainingMs = Math.max(0, state.questionEndsAt - Date.now());
+        const remaining = Math.ceil(remainingMs / 1000);
+        state.timeLeft = remaining;
+
+        const timerEl = document.getElementById("host-timer-val");
+        if (timerEl) timerEl.textContent = remaining + "s";
+
+        const barEl = document.getElementById("host-timer-bar");
+        if (barEl) {
+          const pct = Math.max(0, Math.min(100, (remainingMs / (state.questionDuration * 1000)) * 100));
+          barEl.style.width = pct + "%";
+        }
+
+        const totalPlayers = Object.keys(state.players).length;
+        const answeredCount = Object.values(state.players).filter((p) => p.answeredQ === q.id).length;
+
+        if (remaining <= 0 || (totalPlayers > 0 && answeredCount >= totalPlayers)) {
+          hostRevealAnswer();
+        }
+      }, 250);
+    }
+
+    // Nur der Host darf während einer laufenden Frage +10 Sekunden geben!
+    async function hostAddExtraTime(seconds = 10) {
+      if (!assertHostPermission()) return;
+      if (state.view !== "host_question") return;
+
+      state.questionEndsAt += seconds * 1000;
+      state.questionDuration += seconds;
+      state.timeLeft = Math.ceil((state.questionEndsAt - Date.now()) / 1000);
+      playTone("select");
+      render();
+
+      try {
+        await writeRoomRecord(
+          state.roomCode,
+          {
+            questionEndsAt: state.questionEndsAt,
+            questionDuration: state.questionDuration,
+            updatedAt: Date.now()
+          },
+          true
+        );
+      } catch (err) {
+        console.error("Zeitverlängerung fehlgeschlagen:", err);
+      }
+    }
+
+    async function hostRevealAnswer() {
+      if (!assertHostPermission()) return;
+      if (state.timerId) {
+        clearInterval(state.timerId);
+        state.timerId = null;
+      }
+      state.view = "host_reveal";
+      render();
+
+      try {
+        await writeRoomRecord(
+          state.roomCode,
+          {
+            phase: "reveal",
+            questionIndex: state.questionIndex,
+            updatedAt: Date.now()
+          },
+          true
+        );
+      } catch (err) {
+        console.error("Fehler bei Auflösung:", err);
+      }
+    }
+
+    async function hostShowLeaderboard() {
+      if (!assertHostPermission()) return;
+      if (state.timerId) {
+        clearInterval(state.timerId);
+        state.timerId = null;
+      }
+      const isFinal = state.questionIndex + 1 >= state.activeQuestions.length;
+      state.view = isFinal ? "host_podium" : "host_leaderboard";
+      if (isFinal) {
+        playTone("fanfare");
+        launchConfetti();
+      }
+      render();
+
+      try {
+        await writeRoomRecord(
+          state.roomCode,
+          {
+            phase: isFinal ? "podium" : "leaderboard",
+            questionIndex: state.questionIndex,
+            updatedAt: Date.now()
+          },
+          true
+        );
+      } catch (err) {
+        console.error("Fehler bei Rangliste:", err);
+      }
+    }
+
+    // =========================================================================
+    // 6. MITSPIELEN (EIGENES GERÄT DER MITSCHÜLER – OHNE HOST-RECHTE)
+    // =========================================================================
+    function openPlayerJoinView() {
+      cleanupListeners();
+      state.isVerifiedHost = false;
+      state.hostToken = "";
+      state.bannerMsg = "";
+      state.view = "player_join";
+      render();
+    }
+
+    async function handlePlayerJoinSubmit(e) {
+      e.preventDefault();
+      const codeInput = document.getElementById("join-pin-input");
+      const nameInput = document.getElementById("join-name-input");
+      const code = (codeInput?.value || "").trim();
+      const name = (nameInput?.value || "").trim();
+
+      if (code.length !== 6 || !name) {
+        showBanner("Bitte gib den 6-stelligen Raum-Code und deinen Namen ein.");
+        return;
+      }
+
+      if (!hasLiveBackend()) {
+        await initFirebase();
+      }
+
+      try {
+        const initRoomData = await readRoomRecord(code);
+        if (!initRoomData) {
+          showBanner("Dieser Raum-Code existiert nicht. Prüfe die Zahl vorne am Beamer!");
+          return;
+        }
+
+        // Sicherheit: Mitspieler erhalten niemals Host-Rechte
+        state.isVerifiedHost = false;
+        state.hostToken = "";
+        state.roomCode = code;
+        state.playerName = name;
+        playTone("select");
+
+        if (initRoomData.questionsJson) {
+          try {
+            state.activeQuestions = JSON.parse(initRoomData.questionsJson);
+          } catch (_) {}
+        }
+        state.settings.showTextOnMobile = Boolean(initRoomData.showTextOnMobile);
+
+        await writePlayerRecord(code, state.playerId, {
+          id: state.playerId,
+          name: state.playerName,
+          score: 0,
+          lastGain: 0,
+          answeredQ: null,
+          lastChoice: null,
+          lastCorrect: false,
+          joinedAt: Date.now()
+        });
+
+        state.unsubRoom = subscribeRoomStream(code, (data) => {
+          if (!data) return;
+          const prevIdx = state.questionIndex;
+          state.questionIndex = data.questionIndex || 0;
+          state.questionEndsAt = data.questionEndsAt || 0;
+          state.questionDuration = data.questionDuration || 20;
+          state.settings.showTextOnMobile = Boolean(data.showTextOnMobile);
+
+          if (data.questionsJson) {
+            try {
+              state.activeQuestions = JSON.parse(data.questionsJson);
+            } catch (_) {}
+          }
+
+          if (data.phase === "lobby") {
+            state.view = "player_wait";
+          } else if (data.phase === "question") {
+            if (state.view !== "player_answered" || prevIdx !== state.questionIndex) {
+              if (prevIdx !== state.questionIndex || state.view !== "player_question") {
+                state.selectedOption = null;
+                state.lastPointsEarned = 0;
+              }
+              state.view = "player_question";
+            }
+          } else if (data.phase === "reveal" || data.phase === "leaderboard") {
+            state.view = "player_reveal";
+          } else if (data.phase === "podium") {
+            state.view = "player_podium";
+          }
+          render();
+        });
+
+        state.unsubPlayers = subscribePlayersStream(code, (all) => {
+          state.players = all;
+          if (all[state.playerId]) {
+            state.lastPointsEarned = all[state.playerId].lastGain || 0;
+          }
+          if (state.view === "player_reveal" || state.view === "player_podium") {
+            render();
+          }
+        });
+
+        state.view = "player_wait";
+        render();
+      } catch (err) {
+        console.error("Join error:", err);
+        showBanner("Beitritt fehlgeschlagen. Bitte versuche es noch einmal.");
+      }
+    }
+
+    async function handlePlayerAnswer(choiceIndex) {
+      if (state.view !== "player_question" || state.selectedOption !== null) return;
+      const q = state.activeQuestions[state.questionIndex];
+
+      // Prüfen, ob Zeit abgelaufen ist
+      const remainingSec = Math.max(0, (state.questionEndsAt - Date.now()) / 1000);
+      if (remainingSec <= 0) {
+        showBanner("Die Zeit für diese Frage ist leider schon abgelaufen!");
+        return;
+      }
+
+      state.selectedOption = choiceIndex;
+      state.view = "player_answered";
+
+      const isCorrect = choiceIndex === q.correctIndex;
+      const speedFactor = Math.max(0.4, Math.min(1, remainingSec / Math.max(1, state.questionDuration)));
+      const gained = isCorrect ? Math.round(q.points * (0.5 + 0.5 * speedFactor)) : 0;
+
+      state.lastPointsEarned = gained;
+      if (isCorrect) {
+        playTone("correct");
+      } else {
+        playTone("wrong");
+      }
+      render();
+
+      try {
+        const currentScore = state.players[state.playerId]?.score || 0;
+        await writePlayerRecord(state.roomCode, state.playerId, {
+          answeredQ: q.id,
+          lastChoice: choiceIndex,
+          lastCorrect: isCorrect,
+          lastGain: gained,
+          score: currentScore + gained
+        });
+      } catch (err) {
+        console.error("Antwort konnte nicht gesendet werden:", err);
+      }
+    }
+
+    // =========================================================================
+    // 7. ALLEINE TESTEN (SOLO-MODUS OHNE RAUM-CODE)
+    // =========================================================================
+    function startSoloMode() {
+      cleanupListeners();
+      state.isVerifiedHost = false;
+      state.bannerMsg = "";
+      state.activeQuestions = buildActiveQuestions(false, false);
+      state.view = "solo_play";
+      state.questionIndex = 0;
+      state.soloScore = 0;
+      state.soloAnswers = [];
+      state.selectedOption = null;
+      state.lastPointsEarned = 0;
+      startSoloTimer();
+      render();
+    }
+
+    function startSoloTimer() {
+      if (state.timerId) clearInterval(state.timerId);
+      state.timeLeft = 20;
+      state.selectedOption = null;
+
+      state.timerId = setInterval(() => {
+        state.timeLeft -= 1;
+        const el = document.getElementById("solo-timer-val");
+        if (el) el.textContent = state.timeLeft + "s";
+
+        if (state.timeLeft <= 0) {
+          clearInterval(state.timerId);
+          state.timerId = null;
+          submitSoloChoice(null);
+        }
+      }, 1000);
+    }
+
+    function submitSoloChoice(choiceIndex) {
+      if (state.selectedOption !== null) return;
+      if (state.timerId) {
+        clearInterval(state.timerId);
+        state.timerId = null;
+      }
+      const q = state.activeQuestions[state.questionIndex];
+      state.selectedOption = choiceIndex;
+      const isCorrect = choiceIndex === q.correctIndex;
+      const speedFactor = Math.max(0.4, state.timeLeft / 20);
+      const gained = isCorrect ? Math.round(q.points * (0.5 + 0.5 * speedFactor)) : 0;
+
+      state.lastPointsEarned = gained;
+      state.soloScore += gained;
+      if (isCorrect) playTone("correct");
+      else playTone("wrong");
+
+      state.soloAnswers.push({
+        question: q,
+        chosenIndex: choiceIndex,
+        correctIndex: q.correctIndex,
+        gained
+      });
+      render();
+    }
+
+    function nextSoloStep() {
+      if (state.questionIndex + 1 < state.activeQuestions.length) {
+        state.questionIndex += 1;
+        startSoloTimer();
+        render();
+      } else {
+        state.view = "solo_finished";
+        playTone("fanfare");
+        launchConfetti();
+        render();
+      }
+    }
+
+    // =========================================================================
+    // 8. HILFSFUNKTIONEN & HTML-VIEWS
+    // =========================================================================
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function getSortedPlayers() {
+      return Object.values(state.players).sort((a, b) => (b.score || 0) - (a.score || 0));
+    }
+
+    function renderHeader() {
+      return `
+        <header class="w-full border-b border-amber-400/25 bg-slate-950/85 backdrop-blur-md sticky top-0 z-30">
+          <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+            <button onclick="goHome()" class="flex items-center gap-3 text-left group">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-300 to-amber-500 text-slate-950 flex items-center justify-center font-barock font-extrabold text-lg shadow-md group-hover:scale-105 transition">
+                ♪
+              </div>
+              <div>
+                <div class="font-barock text-amber-300 font-bold tracking-wide text-sm sm:text-base">
+                  DIE EPOCHE DES BAROCK (ca. 1600–1750)
+                </div>
+                <div class="text-xs text-slate-400">
+                  Schülervortrag &amp; Klassen-Quiz von Emil S., Jonas, Marcel &amp; Max
+                </div>
+              </div>
+            </button>
+
+            <div class="flex items-center gap-2">
+              ${
+                state.isVerifiedHost && state.view.startsWith("host_")
+                  ? `<span class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-400/15 border border-amber-400/40 text-amber-300 text-xs font-bold">
+                      👑 Host aktiv
+                    </span>`
+                  : ""
+              }
+              <button
+                onclick="toggleSound()"
+                class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
+              >
+                ${state.soundEnabled ? "🔊 Ton" : "🔇 Stumm"}
+              </button>
+              ${
+                state.view !== "home"
+                  ? `<button
+                      onclick="goHome()"
+                      class="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-950/80 hover:bg-rose-900 text-rose-200 border border-rose-700/60 transition"
+                    >
+                      Startseite
+                    </button>`
+                  : ""
+              }
+            </div>
+          </div>
+          ${
+            state.bannerMsg
+              ? `<div class="bg-amber-500/20 border-t border-amber-400/40 px-4 py-2 text-center text-xs sm:text-sm text-amber-200 font-semibold">
+                  ${escapeHtml(state.bannerMsg)}
+                </div>`
+              : ""
+          }
+        </header>
+      `;
+    }
+
+    function renderHome() {
+      return `
+        <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:py-12 fade-in">
+          <div class="text-center max-w-2xl mx-auto mb-10">
+            <span class="inline-block px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-400/15 text-amber-300 border border-amber-400/35 mb-4">
+              Abschluss-Quiz zum Vortrag · ${BASE_QUESTIONS.length} Fragen aus unseren Folien
+            </span>
+            <h1 class="font-barock text-3xl sm:text-5xl font-extrabold text-white leading-tight mb-4">
+              Wie gut kennt ihr den <span class="text-amber-300">Barock</span>?
+            </h1>
+            <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+              Scannt den QR-Code oder gebt den Raum-Code von vorne am Beamer ein, um auf eurem eigenen
+              Gerät live mitzuspielen.
+            </p>
+          </div>
+
+          <!-- Für alle Mitschüler steht primär das Beitreten im Vordergrund -->
+          <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <div class="rounded-3xl bg-slate-900/95 gold-border gold-glow p-7 flex flex-col justify-between hover:border-blue-400/80 transition">
+              <div>
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/15 border border-blue-400/40 text-blue-300 flex items-center justify-center text-2xl mb-4">
+                  📱
+                </div>
+                <h2 class="font-barock text-2xl font-bold text-blue-200 mb-2">
+                  Jetzt Quiz beitreten
+                </h2>
+                <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                  Gib den 6-stelligen Raum-Code von vorne am Beamer und deinen Namen ein. Auf deinem Handy
+                  erscheinen dann die vier farbigen Symbole (▲ ◆ ● ■).
+                </p>
+              </div>
+              <button
+                onclick="openPlayerJoinView()"
+                class="w-full py-4 px-5 rounded-xl font-bold text-base text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 transition shadow-lg"
+              >
+                Mit Raum-Code beitreten →
+              </button>
+            </div>
+
+            <div class="rounded-3xl bg-slate-900/90 gold-border p-7 flex flex-col justify-between hover:border-emerald-400/80 transition">
+              <div>
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 flex items-center justify-center text-2xl mb-4">
+                  🎧
+                </div>
+                <h2 class="font-barock text-2xl font-bold text-emerald-200 mb-2">
+                  Alleine testen
+                </h2>
+                <p class="text-slate-300 text-sm leading-relaxed mb-6">
+                  Du möchtest alle ${BASE_QUESTIONS.length} Fragen zu unserem Vortrag unabhängig von einer
+                  laufenden Runde alleine durchgehen?
+                </p>
+              </div>
+              <button
+                onclick="startSoloMode()"
+                class="w-full py-4 px-5 rounded-xl font-bold text-base text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition shadow-lg"
+              >
+                Alleine üben starten
+              </button>
+            </div>
+          </div>
+
+          <!-- Geschützter Host-Zugang (Code wird aus diesem Chat eingegeben) -->
+          <div class="rounded-2xl bg-slate-950/80 border border-slate-800 p-4 max-w-md mx-auto text-center">
+            ${
+              state.showHostLoginBox
+                ? `<form onsubmit="handleHostPinUnlock(event)" class="space-y-3">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-300">
+                      🔒 Host-Zugang (nur für den Vortragenden)
+                    </div>
+                    <input
+                      id="host-secret-pin-input"
+                      type="password"
+                      inputmode="numeric"
+                      required
+                      placeholder="Host-Code aus diesem Chat eingeben"
+                      class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-amber-400/40 focus:border-amber-300 focus:outline-none text-center font-mono text-sm text-amber-200"
+                    />
+                    <div class="flex items-center justify-center gap-2">
+                      <button
+                        type="submit"
+                        class="px-4 py-2 rounded-xl text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-300 to-amber-500 hover:from-amber-200 hover:to-amber-400 transition"
+                      >
+                        Raum als Host öffnen
+                      </button>
+                      <button
+                        type="button"
+                        onclick="toggleHostLoginBox()"
+                        class="px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200"
+                      >
+                        Ausblenden
+                      </button>
+                    </div>
+                  </form>`
+                : `<button
+                    onclick="toggleHostLoginBox()"
+                    class="text-xs text-slate-500 hover:text-amber-300 transition font-medium"
+                  >
+                    🔒 Host-Bereich (nur für Vortragende)
+                  </button>`
+            }
+          </div>
+        </main>
+      `;
+    }
+
+    // --- BEAMER / HOST-ANSICHTEN ---
+    function renderHostLobby() {
+      const list = getSortedPlayers();
+      const s = state.settings;
+
+      return `
+        <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 fade-in">
+          <div class="grid lg:grid-cols-12 gap-6 mb-6">
+            <!-- Links: QR-Code & Raum-PIN -->
+            <div class="lg:col-span-7 rounded-3xl bg-slate-900/95 gold-border gold-glow p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6">
+              <div class="bg-white p-3.5 rounded-2xl shadow-xl shrink-0">
+                <div id="lobby-qr-box" class="w-[196px] h-[196px] flex items-center justify-center"></div>
+              </div>
+
+              <div class="text-center sm:text-left flex-1">
+                <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-400/15 text-amber-300 border border-amber-400/35 mb-2">
+                  QR-Code scannen oder Raum-Code eingeben
+                </span>
+                <div class="font-mono text-4xl sm:text-5xl font-extrabold tracking-[0.2em] text-amber-300 mb-3">
+                  ${state.roomCode}
+                </div>
+                <p class="text-slate-300 text-xs sm:text-sm leading-relaxed mb-4">
+                  Tipp für Folie 16 („Quiz“): Lade den QR-Code als fertiges Bild herunter und füge ihn direkt in eure Präsentation ein!
+                </p>
+                <div class="flex flex-wrap justify-center sm:justify-start gap-2.5">
+                  <button
+                    onclick="downloadQrPng()"
+                    class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-950 bg-gradient-to-r from-amber-300 to-amber-500 hover:from-amber-200 hover:to-amber-400 transition shadow"
+                  >
+                    ⬇️ QR-Code als PNG speichern
+                  </button>
+                  <button
+                    onclick="copyJoinLink()"
+                    class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
+                  >
+                    🔗 Direkt-Link kopieren
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Rechts: Exklusive Host-Einstellungen -->
+            <div class="lg:col-span-5 rounded-3xl bg-slate-900/90 gold-border p-6 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-4">
+                  <h2 class="font-barock text-lg font-bold text-amber-200">
+                    Host-Einstellungen
+                  </h2>
+                  <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-400/15 text-amber-300 border border-amber-400/30 font-semibold">
+                    🔒 Nur für dich
+                  </span>
+                </div>
+
+                <!-- Zeit pro Frage -->
+                <div class="mb-4">
+                  <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                    Zeit pro Frage
+                  </label>
+                  <div class="grid grid-cols-4 gap-2">
+                    ${[15, 20, 30, 45]
+                      .map(
+                        (sec) => `
+                        <button
+                          onclick="updateHostSetting('timePerQuestion', ${sec})"
+                          class="py-2 rounded-xl font-mono text-sm font-extrabold border transition ${
+                            s.timePerQuestion === sec
+                              ? "bg-amber-400 text-slate-950 border-amber-300 shadow"
+                              : "bg-slate-950 text-slate-300 border-slate-700 hover:border-amber-400/50"
+                          }"
+                        >
+                          ${sec}s
+                        </button>
+                      `
+                      )
+                      .join("")}
+                  </div>
+                </div>
+
+                <!-- Schalter -->
+                <div class="space-y-2.5 text-xs sm:text-sm">
+                  <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 cursor-pointer">
+                    <span class="text-slate-200 font-medium">Kahoot-Modus (nur Symbole auf Handy)</span>
+                    <input
+                      type="checkbox"
+                      ${!s.showTextOnMobile ? "checked" : ""}
+                      onchange="updateHostSetting('showTextOnMobile', !this.checked)"
+                      class="w-4 h-4 accent-amber-400 rounded"
+                    />
+                  </label>
+
+                  <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 cursor-pointer">
+                    <span class="text-slate-200 font-medium">Fragen-Reihenfolge mischen</span>
+                    <input
+                      type="checkbox"
+                      ${s.shuffleQuestions ? "checked" : ""}
+                      onchange="updateHostSetting('shuffleQuestions', this.checked)"
+                      class="w-4 h-4 accent-amber-400 rounded"
+                    />
+                  </label>
+
+                  <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 cursor-pointer">
+                    <span class="text-slate-200 font-medium">Antwort-Buttons mischen</span>
+                    <input
+                      type="checkbox"
+                      ${s.shuffleOptions ? "checked" : ""}
+                      onchange="updateHostSetting('shuffleOptions', this.checked)"
+                      class="w-4 h-4 accent-amber-400 rounded"
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lobby-Teilnehmer -->
+          <div class="rounded-3xl bg-slate-900/85 gold-border p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="font-barock text-xl font-bold text-amber-200">
+                Beigetretene Mitschüler (${list.length})
+              </h2>
+              <span class="text-xs text-amber-300/80 font-semibold animate-pulse">● Lobby offen</span>
+            </div>
+
+            ${
+              list.length === 0
+                ? `<div class="py-8 text-center text-slate-400 border border-dashed border-slate-700 rounded-2xl text-sm">
+                    Warte auf Mitschüler… Scannt den QR-Code oder gebt <strong>${state.roomCode}</strong> auf euren Geräten ein!
+                   </div>`
+                : `<div class="flex flex-wrap gap-2.5">
+                    ${list
+                      .map(
+                        (p) => `
+                        <span class="px-4 py-2 rounded-full bg-slate-800 border border-amber-400/40 text-amber-100 font-bold text-sm sm:text-base shadow">
+                          ${escapeHtml(p.name)}
+                        </span>
+                      `
+                      )
+                      .join("")}
+                  </div>`
+            }
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <span class="text-xs sm:text-sm text-slate-400">
+              ${state.activeQuestions.length} Fragen · ${s.timePerQuestion}s pro Frage · ${
+        s.showTextOnMobile ? "Text + Symbole auf Handy" : "Echte Kahoot-Aufteilung"
+      }
+            </span>
+            <button
+              onclick="hostStartQuestion(0)"
+              class="px-8 py-4 rounded-2xl font-bold text-lg text-slate-950 bg-gradient-to-r from-amber-300 to-amber-500 hover:from-amber-200 hover:to-amber-400 transition shadow-xl"
+            >
+              Quiz starten →
+            </button>
+          </div>
+        </main>
+      `;
+    }
+
+    function renderHostQuestion() {
+      const q = state.activeQuestions[state.questionIndex];
+      const totalPlayers = Object.keys(state.players).length;
+      const answeredCount = Object.values(state.players).filter((p) => p.answeredQ === q.id).length;
+      const pct = Math.max(0, Math.min(100, (state.timeLeft / Math.max(1, state.questionDuration)) * 100));
+
+      return `
+        <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-5 fade-in flex flex-col justify-between">
+          <div>
+            <!-- Visueller Zeitbalken -->
+            <div class="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden mb-4">
+              <div
+                id="host-timer-bar"
+                class="h-full bg-gradient-to-r from-amber-300 to-amber-500 transition-all duration-200"
+                style="width: ${pct}%"
+              ></div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-5">
+              <div class="flex items-center gap-3">
+                <span class="px-3.5 py-1.5 rounded-xl bg-amber-400/20 border border-amber-400/40 text-amber-300 font-bold text-sm">
+                  Frage ${state.questionIndex + 1} / ${state.activeQuestions.length}
+                </span>
+                <span class="px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold">
+                  ${escapeHtml(q.slideRef)}
+                </span>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <div class="px-4 py-2 rounded-xl bg-slate-800/90 border border-slate-700 text-sm font-bold text-slate-200">
+                  Antworten: <span class="text-amber-300">${answeredCount}</span> / ${totalPlayers}
+                </div>
+                <div class="w-16 h-14 rounded-2xl bg-slate-950 border-2 border-amber-400 flex items-center justify-center">
+                  <span id="host-timer-val" class="font-mono text-2xl font-extrabold text-amber-300">
+                    ${state.timeLeft}s
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-3xl bg-slate-900/95 gold-border p-6 sm:p-9 mb-6 text-center">
+              <h2 class="text-2xl sm:text-4xl font-extrabold text-white leading-snug">
+                ${escapeHtml(q.question)}
+              </h2>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4 mb-6">
+              ${q.options
+                .map(
+                  (opt, idx) => `
+                  <div class="kahoot-btn-${idx} rounded-2xl p-5 sm:p-6 text-white flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-black/25 flex items-center justify-center text-2xl font-black shrink-0">
+                      ${SHAPES[idx]}
+                    </div>
+                    <div class="font-bold text-lg sm:text-xl leading-snug">
+                      ${escapeHtml(opt)}
+                    </div>
+                  </div>
+                `
+                )
+                .join("")}
+            </div>
+          </div>
+
+          <!-- Exklusive Host-Steuerung während der Runde -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <button
+              onclick="hostAddExtraTime(10)"
+              class="px-5 py-3 rounded-xl font-bold text-sm bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/40 transition"
+            >
+              ⏱️ +10 Sek. Zeit geben (Host)
+            </button>
+
+            <button
+              onclick="hostRevealAnswer()"
+              class="px-6 py-3 rounded-xl font-bold text-sm bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 transition"
+            >
+              Runde beenden &amp; auflösen →
+            </button>
+          </div>
+        </main>
+      `;
+    }
+
+    function renderHostReveal() {
+      const q = state.activeQuestions[state.questionIndex];
+      const counts = [0, 0, 0, 0];
+      Object.values(state.players).forEach((p) => {
+        if (p.answeredQ === q.id && typeof p.lastChoice === "number" && counts[p.lastChoice] !== undefined) {
+          counts[p.lastChoice] += 1;
+        }
+      });
+      const maxCount = Math.max(1, ...counts);
+      const isLast = state.questionIndex + 1 >= state.activeQuestions.length;
+
+      return `
+        <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 fade-in">
+          <div class="flex items-center justify-between mb-4">
+            <span class="px-3.5 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 font-bold text-sm">
+              Auflösung · Frage ${state.questionIndex + 1} / ${state.activeQuestions.length}
+            </span>
+            <span class="text-xs text-slate-400">${escapeHtml(q.slideRef)}</span>
+          </div>
+
+          <div class="rounded-3xl bg-slate-900/95 gold-border p-6 mb-5">
+            <h2 class="text-xl sm:text-2xl font-bold text-white mb-3">${escapeHtml(q.question)}</h2>
+            <div class="rounded-2xl bg-emerald-950/70 border border-emerald-400/50 p-4 text-emerald-100">
+              <div class="font-extrabold text-base sm:text-lg text-emerald-300">
+                ✓ Richtige Antwort: ${escapeHtml(q.options[q.correctIndex])}
+              </div>
+              <p class="text-xs sm:text-sm text-emerald-100/90 mt-1">${escapeHtml(q.explanation)}</p>
+            </div>
+            ${
+              q.infoCard
+                ? `<div class="mt-3 rounded-2xl bg-amber-950/55 border border-amber-400/45 p-3.5 text-amber-100 text-xs sm:text-sm">
+                    ${escapeHtml(q.infoCard)}
+                   </div>`
+                : ""
+            }
+          </div>
+
+          <div class="rounded-3xl bg-slate-900/85 border border-slate-800 p-6 mb-6">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
+              So habt ihr geantwortet
+            </h3>
+            <div class="grid grid-cols-4 gap-4 items-end h-40 pt-4">
+              ${[0, 1, 2, 3]
+                .map((idx) => {
+                  const pct = Math.round((counts[idx] / maxCount) * 100);
+                  const isCorrect = idx === q.correctIndex;
+                  return `
+                    <div class="flex flex-col items-center h-full justify-end">
+                      <span class="text-base font-extrabold text-white mb-1">${counts[idx]}</span>
+                      <div class="w-full max-w-[96px] rounded-t-xl kahoot-btn-${idx} ${
+                    isCorrect ? "ring-4 ring-emerald-300" : "opacity-60"
+                  }" style="height: ${Math.max(14, pct)}%"></div>
+                      <div class="mt-2 text-center">
+                        <div class="text-lg font-black">${SHAPES[idx]}</div>
+                        <div class="text-xs ${isCorrect ? "text-emerald-300 font-bold" : "text-slate-400"}">
+                          ${isCorrect ? "Richtig ✓" : SHAPE_NAMES[idx]}
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                })
+                .join("")}
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button
+              onclick="hostShowLeaderboard()"
+              class="px-7 py-3.5 rounded-xl font-bold text-slate-950 bg-gradient-to-r from-amber-300 to-amber-500 hover:from-amber-200 hover:to-amber-400 transition shadow-lg"
+            >
+              ${isLast ? "Zum großen Siegerpodest 🏆" : "Zwischen-Rangliste (Top 5) zeigen →"}
+            </button>
+          </div>
+        </main>
+      `;
+    }
+
+    function renderHostLeaderboard() {
+      const sorted = getSortedPlayers().slice(0, 5);
+      return `
+        <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-8 fade-in">
+          <div class="text-center mb-8">
+            <span class="inline-block px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/40 mb-2">
+              Zwischenstand nach Frage ${state.questionIndex + 1} von ${state.activeQuestions.length}
+            </span>
+            <h2 class="font-barock text-3xl sm:text-4xl font-extrabold text-white">
+              Top 5 der Klasse
+            </h2>
+          </div>
+
+          <div class="rounded-3xl bg-slate-900/90 gold-border p-6 mb-8 space-y-3">
+            ${
+              sorted.length === 0
+                ? `<p class="text-center text-slate-400 py-6">Noch keine Punkte vergeben.</p>`
+                : sorted
+                    .map(
+                      (p, idx) => `
+                      <div class="flex items-center justify-between px-5 py-3.5 rounded-2xl ${
+                        idx === 0
+                          ? "bg-amber-400/20 border border-amber-400/60"
+                          : "bg-slate-800/85 border border-slate-700"
+                      }">
+                        <div class="flex items-center gap-4">
+                          <span class="font-mono font-extrabold text-lg w-8 text-amber-300">#${idx + 1}</span>
+                          <span class="font-bold text-lg text-white">${escapeHtml(p.name)}</span>
+                        </div>
+                        <div class="text-right">
+                          <span class="font-mono text-xl font-extrabold text-amber-300">${p.score || 0} Pkt.</span>
+                          ${
+                            p.lastGain > 0
+                              ? `<span class="block text-xs text-emerald-400 font-bold">+${p.lastGain}</span>`
+                              : ""
+                          }
+                        </div>
+                      </div>
+                    `
+                    )
+                    .join("")
+            }
+          </div>
+
+          <div class="flex justify-end">
+            <button
+              onclick="hostStartQuestion(${state.questionIndex + 1})"
+              class="px-8 py-4 rounded-2xl font-bold text-lg text-slate-950 bg-gradient-to-r from-amber-300 to-amber-500 hover:from-amber-200 hover:to-amber-400 transition shadow-xl"
+            >
+              Nächste Frage (${state.questionIndex + 2} / ${state.activeQuestions.length}) →
+            </button>
+          </div>
+        </main>
+      `;
+    }
+
+    function renderHostPodium() {
+      const sorted = getSortedPlayers();
+      const first = sorted[0];
+      const second = sorted[1];
+      const third = sorted[2];
+
+      return `
+        <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-8 fade-in text-center">
+          <span class="inline-block px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/40 mb-3">
+            Danke fürs Mitmachen beim Vortrag von Emil S., Jonas, Marcel &amp; Max!
+          </span>
+          <h1 class="font-barock text-3xl sm:text-5xl font-extrabold text-white mb-10">
+            Das Siegerpodest des Barock-Quiz
+          </h1>
+
+          <!-- Siegerpodest (2. - 1. - 3.) -->
+          <div class="grid grid-cols-3 gap-3 sm:gap-6 items-end max-w-3xl mx-auto mb-10 pt-6">
+            <div class="flex flex-col items-center">
+              <div class="mb-2">
+                <div class="text-3xl mb-1">🥈</div>
+                <div class="font-bold text-sm sm:text-lg text-slate-100 truncate max-w-[120px] sm:max-w-[180px]">
+                  ${second ? escapeHtml(second.name) : "—"}
+                </div>
+                <div class="font-mono text-xs sm:text-sm text-amber-300 font-bold">
+                  ${second ? `${second.score || 0} Pkt.` : ""}
+                </div>
+              </div>
+              <div class="w-full h-32 sm:h-40 rounded-t-2xl bg-gradient-to-b from-slate-400 to-slate-600 flex items-center justify-center font-barock text-3xl font-extrabold text-slate-950 shadow-lg">
+                2
+              </div>
+            </div>
+
+            <div class="flex flex-col items-center">
+              <div class="mb-2">
+                <div class="text-4xl mb-1">👑</div>
+                <div class="font-extrabold text-base sm:text-xl text-amber-300 truncate max-w-[130px] sm:max-w-[200px]">
+                  ${first ? escapeHtml(first.name) : "—"}
+                </div>
+                <div class="font-mono text-sm sm:text-base text-white font-extrabold">
+                  ${first ? `${first.score || 0} Pkt.` : ""}
+                </div>
+              </div>
+              <div class="w-full h-44 sm:h-56 rounded-t-2xl bg-gradient-to-b from-amber-300 to-amber-600 gold-glow flex items-center justify-center font-barock text-4xl font-extrabold text-slate-950 shadow-2xl">
+                1
+              </div>
+            </div>
+
+            <div class="flex flex-col items-center">
+              <div class="mb-2">
+                <div class="text-3xl mb-1">🥉</div>
+                <div class="font-bold text-sm sm:text-lg text-slate-100 truncate max-w-[120px] sm:max-w-[180px]">
+                  ${third ? escapeHtml(third.name) : "—"}
+                </div>
+                <div class="font-mono text-xs sm:text-sm text-amber-300 font-bold">
+                  ${third ? `${third.score || 0} Pkt.` : ""}
+                </div>
+              </div>
+              <div class="w-full h-24 sm:h-32 rounded-t-2xl bg-gradient-to-b from-amber-700 to-amber-900 flex items-center justify-center font-barock text-3xl font-extrabold text-amber-100 shadow-lg">
+                3
+              </div>
+            </div>
+          </div>
+
+          ${
+            sorted.length > 3
+              ? `<div class="max-w-2xl mx-auto rounded-2xl bg-slate-900/80 border border-slate-800 p-4 mb-8 text-left space-y-2">
+                  ${sorted
+                    .slice(3)
+                    .map(
+                      (p, i) => `
+                      <div class="flex justify-between text-sm px-3 py-1.5 rounded-lg bg-slate-800/60">
+                        <span class="text-slate-300"><strong>#${i + 4}</strong> ${escapeHtml(p.name)}</span>
+                        <span class="font-mono text-amber-300 font-bold">${p.score || 0} Pkt.</span>
+                      </div>
+                    `
+                    )
+                    .join("")}
+                </div>`
+              : ""
+          }
+
+          <button
+            onclick="startPresentationMode()"
+            class="px-7 py-3.5 rounded-xl font-bold bg-slate-800 hover:bg-slate-700 text-amber-200 border border-amber-400/40 transition"
+          >
+            Neue Runde starten
+          </button>
+        </main>
+      `;
+    }
+
+    // --- SCHÜLER-ANSICHTEN (EIGENES GERÄT) ---
+    function renderPlayerJoin() {
+      const hasAutoPin = /^[0-9]{6}$/.test(state.roomCode);
+      return `
+        <main class="flex-1 max-w-md w-full mx-auto px-4 py-10 fade-in flex flex-col justify-center">
+          <div class="rounded-3xl bg-slate-900/95 gold-border p-7">
+            <h1 class="font-barock text-2xl font-bold text-amber-300 text-center mb-2">
+              Beim Barock-Quiz mitspielen
+            </h1>
+            <p class="text-slate-400 text-xs sm:text-sm text-center mb-6">
+              ${
+                hasAutoPin
+                  ? "Raum-Code wurde über den QR-Code erkannt – gib jetzt nur noch deinen Namen ein!"
+                  : "Gib den 6-stelligen Raum-Code von vorne am Beamer und deinen Namen ein."
+              }
+            </p>
+
+            <form onsubmit="handlePlayerJoinSubmit(event)" class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                  Raum-Code (6 Ziffern)
+                </label>
+                <input
+                  id="join-pin-input"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9]{6}"
+                  maxlength="6"
+                  value="${escapeHtml(state.roomCode)}"
+                  required
+                  placeholder="z. B. 482910"
+                  class="w-full px-4 py-3.5 rounded-xl bg-slate-950 border border-slate-700 focus:border-amber-400 focus:outline-none font-mono text-2xl tracking-[0.25em] text-center text-amber-300"
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                  Dein Name
+                </label>
+                <input
+                  id="join-name-input"
+                  type="text"
+                  maxlength="22"
+                  value="${escapeHtml(state.playerName)}"
+                  required
+                  autofocus
+                  placeholder="Dein Vorname"
+                  class="w-full px-4 py-3.5 rounded-xl bg-slate-950 border border-slate-700 focus:border-amber-400 focus:outline-none text-white font-bold text-base"
+                />
+              </div>
+
+              <button
+                type="submit"
+                class="w-full py-4 rounded-xl font-bold text-base text-slate-950 bg-gradient-to-r from-amber-300 to-amber-500 hover:from-amber-200 hover:to-amber-400 transition shadow-lg mt-2"
+              >
+                Beitreten →
+              </button>
+            </form>
+          </div>
+        </main>
+      `;
+    }
+
+    function renderPlayerWait() {
+      return `
+        <main class="flex-1 max-w-md w-full mx-auto px-4 py-12 fade-in text-center flex flex-col justify-center">
+          <div class="rounded-3xl bg-slate-900/95 gold-border p-8">
+            <div class="w-16 h-16 rounded-2xl bg-amber-400/20 text-amber-300 flex items-center justify-center text-3xl mx-auto mb-4 animate-bounce">
+              🎼
+            </div>
+            <h2 class="font-barock text-2xl font-bold text-white mb-2">
+              Du bist drin, ${escapeHtml(state.playerName)}!
+            </h2>
+            <p class="text-slate-300 text-sm mb-3">
+              Raum-Code: <span class="font-mono font-bold text-amber-300">${escapeHtml(state.roomCode)}</span>
+            </p>
+            <p class="text-xs text-slate-400">
+              Siehst du deinen Namen vorne am Beamer? Gleich starten wir die erste Frage!
+            </p>
+          </div>
+        </main>
+      `;
+    }
+
+    function renderPlayerQuestion() {
+      const q = state.activeQuestions[state.questionIndex];
+      const showFullText = state.settings.showTextOnMobile;
+
+      // Echte Kahoot-Aufteilung: Frage & Antworttexte stehen auf dem Beamer, Handy zeigt 4 riesige Symbol-Buttons
+      if (!showFullText) {
+        return `
+          <main class="flex-1 max-w-xl w-full mx-auto px-3 py-4 fade-in flex flex-col justify-between">
+            <div class="rounded-2xl bg-slate-900/95 gold-border px-4 py-3 mb-3 flex items-center justify-between">
+              <span class="text-xs text-amber-300 font-bold uppercase tracking-wider">
+                Frage ${state.questionIndex + 1} / ${state.activeQuestions.length}
+              </span>
+              <span class="text-xs text-slate-300 font-semibold">
+                📽️ Lies vorne am Beamer &amp; tippe das Symbol!
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3.5 flex-1">
+              ${[0, 1, 2, 3]
+                .map(
+                  (idx) => `
+                  <button
+                    onclick="handlePlayerAnswer(${idx})"
+                    aria-label="${SHAPE_NAMES[idx]}"
+                    class="kahoot-btn-${idx} rounded-3xl p-6 text-white flex flex-col items-center justify-center gap-2 transition min-h-[150px]"
+                  >
+                    <span class="text-5xl sm:text-6xl font-black drop-shadow">${SHAPES[idx]}</span>
+                    <span class="text-xs uppercase tracking-widest font-bold opacity-85">${SHAPE_NAMES[idx]}</span>
+                  </button>
+                `
+                )
+                .join("")}
+            </div>
+          </main>
+        `;
+      }
+
+      // Optionaler Modus mit Text auf dem Handy (vom Host aktivierbar)
+      return `
+        <main class="flex-1 max-w-2xl w-full mx-auto px-3 py-4 fade-in flex flex-col justify-between">
+          <div class="rounded-2xl bg-slate-900/95 gold-border p-4 mb-3 text-center">
+            <div class="text-xs text-amber-300 font-bold uppercase tracking-wider mb-1">
+              Frage ${state.questionIndex + 1} / ${state.activeQuestions.length}
+            </div>
+            <p class="text-sm sm:text-base font-bold text-white leading-snug">
+              ${escapeHtml(q.question)}
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
+            ${q.options
+              .map(
+                (opt, idx) => `
+                <button
+                  onclick="handlePlayerAnswer(${idx})"
+                  class="kahoot-btn-${idx} rounded-2xl p-4 text-white flex items-center gap-3.5 text-left transition min-h-[76px]"
+                >
+                  <span class="w-10 h-10 rounded-xl bg-black/25 flex items-center justify-center text-xl font-black shrink-0">
+                    ${SHAPES[idx]}
+                  </span>
+                  <span class="text-sm sm:text-base font-bold leading-snug">${escapeHtml(opt)}</span>
+                </button>
+              `
+              )
+              .join("")}
+          </div>
+        </main>
+      `;
+    }
+
+    function renderPlayerAnswered() {
+      return `
+        <main class="flex-1 max-w-md w-full mx-auto px-4 py-12 fade-in text-center flex flex-col justify-center">
+          <div class="rounded-3xl bg-slate-900/95 gold-border p-8">
+            <div class="text-5xl mb-3 text-amber-300">✓</div>
+            <h2 class="font-barock text-2xl font-bold text-white mb-2">
+              Antwort eingeloggt!
+            </h2>
+            <p class="text-slate-300 text-sm">
+              Gleich zeigen wir vorne die Auflösung.
+            </p>
+          </div>
+        </main>
+      `;
+    }
+
+    function renderPlayerReveal() {
+      const sorted = getSortedPlayers();
+      const myRank = sorted.findIndex((p) => p.id === state.playerId) + 1;
+      const me = state.players[state.playerId];
+      const gained = me?.lastGain ?? state.lastPointsEarned;
+      const total = me?.score ?? 0;
+      const gotPoints = gained > 0;
+      const personAhead = myRank > 1 ? sorted[myRank - 2] : null;
+      const gap = personAhead ? Math.max(1, (personAhead.score || 0) - total) : 0;
+
+      return `
+        <main class="flex-1 max-w-md w-full mx-auto px-4 py-12 fade-in text-center flex flex-col justify-center">
+          <div class="rounded-3xl ${
+            gotPoints
+              ? "bg-emerald-950/85 border-2 border-emerald-400/70"
+              : "bg-slate-900/95 gold-border"
+          } p-8">
+            <div class="text-4xl mb-3">${gotPoints ? "🎉" : "🎵"}</div>
+            <h2 class="font-barock text-2xl font-bold ${
+              gotPoints ? "text-emerald-300" : "text-amber-200"
+            } mb-2">
+              ${gotPoints ? `Richtig! +${gained} Punkte` : "Leider keine Punkte in dieser Runde"}
+            </h2>
+            <p class="text-slate-200 font-mono text-base font-bold mb-1">
+              Gesamt: ${total} Pkt. ${myRank > 0 ? `(Platz ${myRank} von ${sorted.length})` : ""}
+            </p>
+            <p class="text-xs text-slate-300 mt-2">
+              ${
+                myRank === 1
+                  ? "👑 Du liegst aktuell auf Platz 1!"
+                  : personAhead
+                  ? `Nur ${gap} Punkte hinter ${escapeHtml(personAhead.name)}!`
+                  : "Schau nach vorne für die Erklärung aus den Folien!"
+              }
+            </p>
+          </div>
+        </main>
+      `;
+    }
+
+    function renderPlayerPodium() {
+      const sorted = getSortedPlayers();
+      const myRank = sorted.findIndex((p) => p.id === state.playerId) + 1;
+      const me = state.players[state.playerId];
+
+      return `
+        <main class="flex-1 max-w-md w-full mx-auto px-4 py-12 fade-in text-center flex flex-col justify-center">
+          <div class="rounded-3xl bg-slate-900/95 gold-border gold-glow p-8">
+            <div class="text-5xl mb-3">${myRank === 1 ? "👑" : myRank <= 3 ? "🏅" : "👏"}</div>
+            <h2 class="font-barock text-2xl font-extrabold text-amber-300 mb-2">
+              Quiz beendet!
+            </h2>
+            <p class="text-white text-lg font-bold mb-1">
+              ${myRank > 0 ? `Platz ${myRank} von ${sorted.length}` : escapeHtml(state.playerName)}
+            </p>
+            <p class="font-mono text-xl font-extrabold text-amber-300 mb-4">
+              ${me?.score || 0} Punkte
+            </p>
+            <button
+              onclick="goHome()"
+              class="w-full py-3 rounded-xl font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
+            >
+              Zur Startseite
+            </button>
+          </div>
+        </main>
+      `;
+    }
+
+    // --- SOLO-MODUS ---
+    function renderSoloPlay() {
+      const q = state.activeQuestions[state.questionIndex];
+      const answered = state.selectedOption !== null;
+      const isCorrect = state.selectedOption === q.correctIndex;
+
+      return `
+        <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-6 fade-in">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+            <div class="flex items-center gap-2.5">
+              <span class="px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 font-bold text-xs sm:text-sm">
+                Frage ${state.questionIndex + 1} / ${state.activeQuestions.length}
+              </span>
+              <span class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold">
+                ${escapeHtml(q.slideRef)}
+              </span>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <span class="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-amber-400/40 text-amber-300 font-mono font-bold text-sm">
+                ${state.soloScore} Pkt.
+              </span>
+              <span id="solo-timer-val" class="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700 font-mono font-bold text-sm text-white">
+                ${state.timeLeft}s
+              </span>
+            </div>
+          </div>
+
+          <div class="rounded-3xl bg-slate-900/95 gold-border p-6 mb-6">
+            <h2 class="text-lg sm:text-2xl font-bold text-white leading-snug">
+              ${escapeHtml(q.question)}
+            </h2>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4 mb-6">
+            ${q.options
+              .map((opt, idx) => {
+                const chosen = state.selectedOption === idx;
+                const rightOpt = idx === q.correctIndex;
+                let extraClass = "";
+                if (answered) {
+                  if (rightOpt) extraClass = "ring-4 ring-emerald-300";
+                  else if (chosen) extraClass = "ring-4 ring-rose-300 opacity-90";
+                  else extraClass = "opacity-45";
+                }
+                return `
+                  <button
+                    ${answered ? "disabled" : `onclick="submitSoloChoice(${idx})"`}
+                    class="kahoot-btn-${idx} rounded-2xl p-4 sm:p-5 text-white flex items-center gap-3.5 text-left transition ${extraClass}"
+                  >
+                    <span class="w-10 h-10 rounded-xl bg-black/25 flex items-center justify-center text-lg font-black shrink-0">
+                      ${SHAPES[idx]}
+                    </span>
+                    <span class="font-bold text-sm sm:text-base leading-snug">
+                      ${escapeHtml(opt)}
+                    </span>
+                  </button>
+                `;
+              })
+              .join("")}
+          </div>
+
+          ${
+            answered
+              ? `<div class="rounded-2xl bg-slate-900/95 border ${
+                  isCorrect ? "border-emerald-500/50" : "border-amber-500/50"
+                } p-5 fade-in">
+                  <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="max-w-2xl">
+                      <div class="font-bold text-base ${
+                        isCorrect ? "text-emerald-300" : "text-amber-300"
+                      } mb-1">
+                        ${
+                          isCorrect
+                            ? `Richtig! +${state.lastPointsEarned} Punkte`
+                            : `Richtige Antwort: ${escapeHtml(q.options[q.correctIndex])}`
+                        }
+                      </div>
+                      <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                        ${escapeHtml(q.explanation)}
+                      </p>
+                      ${
+                        q.infoCard
+                          ? `<p class="text-amber-200/95 text-xs mt-2 bg-amber-950/50 border border-amber-400/30 rounded-xl p-2.5">
+                              ${escapeHtml(q.infoCard)}
+                             </p>`
+                          : ""
+                      }
+                    </div>
+                    <button
+                      onclick="nextSoloStep()"
+                      class="px-6 py-3 rounded-xl font-bold text-slate-950 bg-gradient-to-r from-amber-300 to-amber-500 hover:from-amber-200 hover:to-amber-400 transition shadow-lg shrink-0"
+                    >
+                      ${state.questionIndex + 1 < state.activeQuestions.length ? "Nächste Frage →" : "Auswertung →"}
+                    </button>
+                  </div>
+                </div>`
+              : ""
+          }
+        </main>
+      `;
+    }
+
+    function renderSoloFinished() {
+      const correctTotal = state.soloAnswers.filter((a) => a.chosenIndex === a.correctIndex).length;
+      return `
+        <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-8 fade-in">
+          <div class="rounded-3xl bg-slate-900/95 gold-border p-7 text-center mb-8">
+            <div class="text-4xl mb-2">🏆</div>
+            <h2 class="font-barock text-3xl font-extrabold text-amber-300 mb-2">
+              Solo-Durchgang geschafft!
+            </h2>
+            <p class="text-slate-300 text-base">
+              Du hast <strong class="text-white">${correctTotal} von ${state.activeQuestions.length}</strong> Fragen aus den Folien richtig
+              beantwortet und <strong class="text-amber-300">${state.soloScore} Punkte</strong> erreicht.
+            </p>
+          </div>
+
+          <div class="space-y-3 mb-8">
+            ${state.soloAnswers
+              .map((item, i) => {
+                const ok = item.chosenIndex === item.correctIndex;
+                return `
+                  <div class="rounded-2xl bg-slate-900/85 border ${
+                    ok ? "border-emerald-500/35" : "border-rose-500/35"
+                  } p-4">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <span class="text-xs font-bold ${ok ? "text-emerald-300" : "text-rose-300"}">
+                          ${ok ? "✓ Richtig" : "✕ Falsch"} · Frage ${i + 1} (${escapeHtml(item.question.slideRef)})
+                        </span>
+                        <h3 class="font-bold text-white text-sm sm:text-base mt-0.5">
+                          ${escapeHtml(item.question.question)}
+                        </h3>
+                        <p class="text-xs text-slate-300 mt-1">
+                          Lösung: <strong class="text-emerald-200">${escapeHtml(
+                            item.question.options[item.correctIndex]
+                          )}</strong>
+                        </p>
+                      </div>
+                      <span class="font-mono text-sm font-bold text-amber-300 shrink-0">
+                        +${item.gained}
+                      </span>
+                    </div>
+                  </div>
+                `;
+              })
+              .join("")}
+          </div>
+
+          <div class="flex flex-wrap justify-center gap-4">
+            <button
+              onclick="startSoloMode()"
+              class="px-7 py-3.5 rounded-xl font-bold text-slate-950 bg-gradient-to-r from-amber-300 to-amber-500 hover:from-amber-200 hover:to-amber-400 transition shadow-lg"
+            >
+              Nochmal üben
+            </button>
+            <button
+              onclick="goHome()"
+              class="px-6 py-3.5 rounded-xl font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
+            >
+              Zur Startseite
+            </button>
+          </div>
+        </main>
+      `;
+    }
+
+    function render() {
+      let content = "";
+      switch (state.view) {
+        case "host_lobby":
+          content = renderHostLobby();
+          break;
+        case "host_question":
+          content = renderHostQuestion();
+          break;
+        case "host_reveal":
+          content = renderHostReveal();
+          break;
+        case "host_leaderboard":
+          content = renderHostLeaderboard();
+          break;
+        case "host_podium":
+          content = renderHostPodium();
+          break;
+        case "player_join":
+          content = renderPlayerJoin();
+          break;
+        case "player_wait":
+          content = renderPlayerWait();
+          break;
+        case "player_question":
+          content = renderPlayerQuestion();
+          break;
+        case "player_answered":
+          content = renderPlayerAnswered();
+          break;
+        case "player_reveal":
+          content = renderPlayerReveal();
+          break;
+        case "player_podium":
+          content = renderPlayerPodium();
+          break;
+        case "solo_play":
+          content = renderSoloPlay();
+          break;
+        case "solo_finished":
+          content = renderSoloFinished();
+          break;
+        default:
+          content = renderHome();
+      }
+      document.getElementById("app").innerHTML = renderHeader() + content;
+
+      if (state.view === "host_lobby") {
+        renderLobbyQrCode();
+      }
+    }
+
+    // Globale Handler für HTML-Events
+    window.goHome = () => {
+      cleanupListeners();
+      state.isVerifiedHost = false;
+      state.view = "home";
+      render();
+    };
+    window.toggleSound = () => {
+      state.soundEnabled = !state.soundEnabled;
+      render();
+    };
+    window.toggleHostLoginBox = toggleHostLoginBox;
+    window.handleHostPinUnlock = handleHostPinUnlock;
+    window.startPresentationMode = startPresentationMode;
+    window.updateHostSetting = updateHostSetting;
+    window.downloadQrPng = downloadQrPng;
+    window.copyJoinLink = copyJoinLink;
+    window.hostStartQuestion = hostStartQuestion;
+    window.hostAddExtraTime = hostAddExtraTime;
+    window.hostRevealAnswer = hostRevealAnswer;
+    window.hostShowLeaderboard = hostShowLeaderboard;
+    window.openPlayerJoinView = openPlayerJoinView;
+    window.handlePlayerJoinSubmit = handlePlayerJoinSubmit;
+    window.handlePlayerAnswer = handlePlayerAnswer;
+    window.startSoloMode = startSoloMode;
+    window.submitSoloChoice = submitSoloChoice;
+    window.nextSoloStep = nextSoloStep;
+
+    // Initialisierung
+    checkUrlRoomParam();
+    render();
+    initFirebase().then(() => render());
+  </script>
+</body>
+</html>
